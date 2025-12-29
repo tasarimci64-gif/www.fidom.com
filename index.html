@@ -1,0 +1,3508 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Fido - Ekranı Kapat, Anılarını Büyüt</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fredoka:wght@400;500;600;700&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Konfeti Kütüphanesi -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --color-primary: #4ADE80;
+            --color-secondary: #FBBF24;
+            --color-accent: #A78BFA;
+            --color-danger: #F87171;
+            --bg-soft: #F0F9FF;
+        }
+        
+        * {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+        }
+        
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        body {
+            font-family: 'Comic Neue', 'Fredoka', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        h1, h2, h3, .fredoka {
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 700;
+        }
+
+        /* Mobil Simülasyon Container */
+        #mobile-container {
+            width: 100%;
+            max-width: 414px;
+            height: 100%;
+            max-height: 896px;
+            background-color: #ffffff;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border-radius: 40px;
+            border: 12px solid #333;
+            touch-action: pan-y pinch-zoom;
+        }
+        
+        /* Mobil cihazlar için düzenlemeler */
+        @media (max-height: 896px) {
+            #mobile-container {
+                height: 100vh;
+                max-height: 100vh;
+                border-radius: 0;
+                border: none;
+            }
+        }
+        
+        @media (max-width: 414px) {
+            #mobile-container {
+                width: 100vw;
+                border-radius: 0;
+                border: none;
+            }
+        }
+
+        /* Çocuksu animasyonlar */
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+        }
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(-3deg); }
+            50% { transform: rotate(3deg); }
+        }
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .bounce-animation {
+            animation: bounce 2s infinite ease-in-out;
+        }
+        .float-animation {
+            animation: float 3s infinite ease-in-out;
+        }
+        .wiggle-animation {
+            animation: wiggle 0.5s infinite;
+        }
+        .pulse-soft {
+            animation: pulse-soft 2s infinite;
+        }
+
+        /* Görünüm Geçiş Animasyonları - DÜZELTİLDİ */
+        .view-section {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            background: var(--bg-soft);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            transform: translateY(20px);
+            -webkit-overflow-scrolling: touch; /* iOS smooth scroll */
+            scroll-behavior: smooth;
+            z-index: 1;
+        }
+
+        .view-section.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+            z-index: 10;
+        }
+        
+        /* Sabit yükseklikli içerik için */
+        .view-section.fixed-height {
+            height: calc(100% - 80px); /* Alt navigasyon için yer bırak */
+            overflow-y: auto;
+        }
+
+        /* Bitki Büyüme Animasyonu */
+        @keyframes growAnim {
+            0% { transform: scale(0.5) translateY(30px); opacity: 0.3; }
+            30% { transform: scale(1.1) translateY(-10px); opacity: 0.8; }
+            70% { transform: scale(0.95) translateY(5px); }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        .plant-grow-effect {
+            animation: growAnim 2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Bitki Ölme Animasyonu */
+        .plant-die-effect {
+            filter: grayscale(100%) sepia(50%) hue-rotate(-50deg);
+            transform: scale(0.8) rotate(-10deg);
+            transition: all 1.5s ease;
+        }
+
+        /* Çocuksu butonlar - Mobil uyumlu */
+        .btn-childish {
+            border-radius: 20px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.1);
+            transition: all 0.2s;
+            border: 3px solid white;
+            position: relative;
+            overflow: hidden;
+            min-height: 48px; /* Mobil dokunmatik uyumlu boyut */
+        }
+        
+        .btn-childish:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+        }
+        
+        /* Mobil için daha büyük tıklama alanı */
+        @media (max-width: 768px) {
+            .btn-childish {
+                min-height: 56px;
+                padding: 12px 16px !important;
+            }
+        }
+        
+        .btn-childish::after {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.3) 50%, transparent 70%);
+            transform: translateX(-100%);
+        }
+        .btn-childish:hover::after {
+            animation: shine 1.5s infinite;
+        }
+        @keyframes shine {
+            100% { transform: translateX(100%); }
+        }
+
+        /* Sevimli kartlar */
+        .card-childish {
+            border-radius: 24px;
+            border: 3px solid white;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            background: white;
+            transition: all 0.3s;
+        }
+        .card-childish:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+
+        /* Custom Scrollbar - Mobil uyumlu */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--color-primary), var(--color-accent));
+            border-radius: 10px;
+        }
+        
+        /* Mobil cihazlar için input ve buton stilleri */
+        input, textarea, button, select {
+            font-size: 16px !important; /* iOS zoom önleme */
+        }
+        
+        /* Mobil cihazlarda daha büyük tıklama alanları */
+        button, .clickable {
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        /* Alt Navigasyon - Sabit ve güvenli alan için */
+        #bottom-nav, #parent-bottom-nav {
+            height: 80px;
+            padding-bottom: env(safe-area-inset-bottom, 0);
+            background: linear-gradient(to top, white, #f9fafb);
+            z-index: 1000;
+        }
+        
+        /* iPhone X ve üstü için güvenli alan */
+        @supports(padding: max(0px)) {
+            #bottom-nav, #parent-bottom-nav {
+                padding-bottom: max(0px, env(safe-area-inset-bottom));
+            }
+        }
+        
+        /* Modal z-index düzenlemesi */
+        .modal-container {
+            z-index: 9999 !important;
+        }
+        
+        /* Bitki konteyner mobil uyumlu */
+        #plant-container {
+            transform-origin: center bottom;
+            max-height: 60vh;
+        }
+        
+        /* Slider mobil uyumlu */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(to right, #34d399, #06b6d4);
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: white;
+            border: 4px solid #10b981;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        
+        /* Mobilde metin seçimini engelle */
+        .no-select {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        /* Sabit yükseklikler için yardımcı sınıflar */
+        .min-h-screen-mobile {
+            min-height: calc(100vh - 80px);
+        }
+        
+        /* iOS momentum scroll için */
+        .momentum-scroll {
+            -webkit-overflow-scrolling: touch;
+            overflow-y: scroll;
+        }
+        
+        /* QR kod sayfası için düzenleme */
+        #view-qr-code {
+            padding-bottom: 100px; /* Alt navigasyon + güvenli alan */
+        }
+        
+        /* Ebeveyn paneli için düzenleme */
+        #view-parent-dashboard {
+            padding-bottom: 100px;
+        }
+        
+        /* Maskot resmi için stil */
+        #maskot-image {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            border: 3px solid #FBBF24;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            background: white;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body class="no-select">
+
+    <div id="mobile-container">
+        
+        <!-- 1. AÇILIŞ EKRANI (Giriş/Kayıt Seçimi) -->
+        <div id="view-welcome" class="view-section active flex flex-col items-center justify-center bg-gradient-to-br from-pink-300 via-purple-300 to-blue-300 text-white z-50">
+            <div class="text-center p-8 w-full">
+                <!-- Maskot Ana Ekranda -->
+                <div class="relative mb-8">
+                    <div class="absolute -top-10 -left-10 w-32 h-32 bg-yellow-300 rounded-full opacity-20 animate-pulse"></div>
+                    <div class="absolute -bottom-5 -right-5 w-24 h-24 bg-pink-300 rounded-full opacity-20 animate-pulse" style="animation-delay: 0.5s;"></div>
+                    
+                    <div class="relative bg-white rounded-full p-8 inline-block mb-6 shadow-2xl border-4 border-yellow-200 bounce-animation">
+                        <div class="w-32 h-32 flex items-center justify-center">
+                            <i><img src="Fidom.png" alt="Tohum İkonu" class="!w-32 !h-32 object-contain"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <h1 class="text-5xl font-bold mb-2 drop-shadow-md fredoka text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500">Fido</h1>
+                <p class="text-xl opacity-90 mb-10">Ekranı kapat, anılarını büyüt! 🌱</p>
+                
+                <div class="space-y-6 w-full max-w-xs mx-auto">
+                    <button onclick="app.router.navigate('parent-login')" class="btn-childish w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold py-5 rounded-2xl shadow-lg text-lg">
+                        <i class="fas fa-user-shield mr-2"></i> Ebeveyn Girişi
+                    </button>
+                    
+                    <button onclick="app.router.navigate('child-login')" class="btn-childish w-full bg-gradient-to-r from-green-400 to-cyan-500 text-white font-bold py-5 rounded-2xl shadow-lg text-lg">
+                        <i class="fas fa-child mr-2"></i> Çocuk Girişi
+                    </button>
+                    
+                    <button onclick="app.router.navigate('parent-register')" class="w-full bg-white bg-opacity-30 text-white font-semibold py-3 rounded-2xl hover:bg-opacity-40 transition text-sm border-2 border-white border-opacity-50">
+                        <i class="fas fa-user-plus mr-2"></i> Yeni Ebeveyn Kaydı
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Uçan bulutlar -->
+            <div class="absolute top-10 left-4 text-4xl opacity-30 float-animation">☁️</div>
+            <div class="absolute top-20 right-8 text-3xl opacity-40 float-animation" style="animation-delay: 1s;">☁️</div>
+            <div class="absolute bottom-32 left-10 text-2xl opacity-50 float-animation" style="animation-delay: 2s;">🌼</div>
+        </div>
+
+        <!-- 2. EBEVEYN KAYIT EKRANI -->
+        <div id="view-parent-register" class="view-section p-6 momentum-scroll">
+            <div class="flex items-center mb-8 mt-4">
+                <button onclick="app.router.navigate('welcome')" class="text-gray-500 text-2xl mr-4">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <h2 class="text-2xl font-bold text-gray-800">Ebeveyn Kaydı</h2>
+            </div>
+            
+            <div class="space-y-5 pb-6">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Adınız *</label>
+                    <input type="text" id="parent-firstname" class="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-green-500 focus:ring-2 focus:ring-green-200" placeholder="Adınız">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Soyadınız *</label>
+                    <input type="text" id="parent-lastname" class="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-green-500 focus:ring-2 focus:ring-green-200" placeholder="Soyadınız">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">E-posta Adresi *</label>
+                    <input type="email" id="parent-email" class="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-green-500 focus:ring-2 focus:ring-green-200" placeholder="ornek@email.com">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Şifre *</label>
+                    <input type="password" id="parent-password" class="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-green-500 focus:ring-2 focus:ring-green-200" placeholder="En az 6 karakter">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Adres (Gerçek Ödüller İçin)</label>
+                    <textarea id="parent-address" rows="3" class="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-green-500 focus:ring-2 focus:ring-green-200" placeholder="Tam adresiniz (Sokak, No, İlçe, Şehir)"></textarea>
+                    <p class="text-xs text-gray-500 mt-1">3 ayda bir gönderilecek gerçek bitki tohumları için gereklidir.</p>
+                </div>
+                
+                <div class="pt-4">
+                    <button onclick="app.auth.registerParent()" class="btn-childish w-full bg-gradient-to-r from-green-500 to-blue-500 text-white font-bold py-4 rounded-2xl text-lg">
+                        <i class="fas fa-user-check mr-2"></i> Hesabımı Oluştur
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. EBEVEYN GİRİŞ EKRANI -->
+        <div id="view-parent-login" class="view-section p-6 momentum-scroll">
+            <div class="flex items-center mb-12 mt-4">
+                <button onclick="app.router.navigate('welcome')" class="text-gray-500 text-2xl mr-4">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <h2 class="text-2xl font-bold text-gray-800">Ebeveyn Girişi</h2>
+            </div>
+            
+            <div class="text-center mb-10">
+                <div class="w-24 h-24 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-white shadow-lg">
+                    <i class="fas fa-user-shield text-4xl text-blue-500"></i>
+                </div>
+                <p class="text-gray-600">Çocuğunuzun ekran süresini yönetmek için giriş yapın</p>
+            </div>
+            
+            <div class="space-y-5 pb-6">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">E-posta Adresi</label>
+                    <input type="email" id="parent-login-email" class="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-green-500 focus:ring-2 focus:ring-green-200" placeholder="ornek@email.com">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Şifre</label>
+                    <input type="password" id="parent-login-password" class="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-green-500 focus:ring-2 focus:ring-green-200" placeholder="Şifreniz">
+                </div>
+                
+                <div class="pt-4">
+                    <button onclick="app.auth.loginParent()" class="btn-childish w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold py-4 rounded-2xl text-lg">
+                        <i class="fas fa-sign-in-alt mr-2"></i> Giriş Yap
+                    </button>
+                </div>
+                
+                <!-- Demo Bilgileri -->
+                <div class="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border-2 border-blue-200">
+                    <p class="text-sm font-bold text-blue-800 mb-2">Demo Giriş Bilgileri:</p>
+                    <p class="text-xs text-blue-600">E-posta: <span class="font-mono">ebeveyn@ornek.com</span></p>
+                    <p class="text-xs text-blue-600">Şifre: <span class="font-mono">123456</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. ÇOCUK GİRİŞ EKRANI -->
+        <div id="view-child-login" class="view-section p-6 momentum-scroll">
+            <div class="flex items-center mb-12 mt-4">
+                <button onclick="app.router.navigate('welcome')" class="text-gray-500 text-2xl mr-4">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <h2 class="text-2xl font-bold text-gray-800">Çocuk Girişi</h2>
+            </div>
+            
+            <div class="text-center mb-10">
+                <div class="w-24 h-24 bg-gradient-to-r from-green-100 to-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-white shadow-lg">
+                    <i class="fas fa-child text-4xl text-green-500"></i>
+                </div>
+                <p class="text-gray-600">Bitkilerini büyütmek için giriş yap!</p>
+            </div>
+            
+            <div class="space-y-5 pb-6">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Kullanıcı Adı</label>
+                    <input type="text" id="child-username" class="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-green-500 focus:ring-2 focus:ring-green-200" placeholder="Ebeveynin verdiği kullanıcı adı">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Şifre</label>
+                    <input type="password" id="child-password" class="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-green-500 focus:ring-2 focus:ring-green-200" placeholder="Şifren">
+                </div>
+                
+                <div class="pt-4">
+                    <button onclick="app.auth.loginChild()" class="btn-childish w-full bg-gradient-to-r from-green-500 to-cyan-500 text-white font-bold py-4 rounded-2xl text-lg">
+                        <i class="fas fa-seedling mr-2"></i> Bahçeme Git!
+                    </button>
+                </div>
+                
+                <!-- Demo Bilgileri -->
+                <div class="mt-6 p-4 bg-gradient-to-r from-green-50 to-cyan-50 rounded-2xl border-2 border-green-200">
+                    <p class="text-sm font-bold text-green-800 mb-2">Demo Giriş Bilgileri:</p>
+                    <p class="text-xs text-green-600">Kullanıcı adı: <span class="font-mono">cocuk</span></p>
+                    <p class="text-xs text-green-600">Şifre: <span class="font-mono">123456</span></p>
+                    <p class="text-xs text-green-600 mt-2">Veya: <span class="font-mono">ahmet</span> / <span class="font-mono">123</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. ANA EKRAN: BAHÇEM (Çocuk Arayüzü) -->
+        <div id="view-garden" class="view-section fixed-height">
+            <!-- Üst Bar - Gelişmiş -->
+            <div class="bg-gradient-to-r from-green-400 to-cyan-400 p-4 shadow-md flex justify-between items-center sticky top-0 z-20 rounded-b-3xl">
+                <div class="flex items-center gap-3">
+                    <!-- Profil Resmi -->
+                    <div id="profile-pic-container" class="w-12 h-12 bg-gradient-to-r from-pink-300 to-purple-300 rounded-full flex items-center justify-center text-white font-bold border-4 border-white shadow-lg">
+                        <span id="profile-emoji">👦</span>
+                    </div>
+                    <div>
+                        <p class="text-xs text-white font-bold opacity-80">MERHABA</p>
+                        <p class="text-sm font-bold text-white truncate w-28" id="user-name">Misafir Bahçıvan</p>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <!-- Puan Tablosu -->
+                    <div class="flex flex-col items-end">
+                        <div class="flex items-center text-yellow-300 font-bold text-sm bg-white bg-opacity-20 px-3 py-1 rounded-full">
+                            <i class="fa-solid fa-star mr-1 text-yellow-300"></i> <span id="currency-stars">0</span>
+                        </div>
+                        <div class="flex items-center text-blue-200 font-bold text-sm bg-white bg-opacity-20 px-3 py-1 rounded-full mt-1">
+                            <i class="fa-solid fa-droplet mr-1 text-blue-200"></i> <span id="currency-water">0</span>
+                        </div>
+                    </div>
+                    <!-- Hesap Değiştir Butonu -->
+                    <button onclick="app.profile.showAccountSwitcher()" class="w-10 h-10 bg-white bg-opacity-30 rounded-full flex items-center justify-center text-white">
+                        <i class="fas fa-exchange-alt"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bitki Alanı -->
+            <div class="relative w-full h-80 bg-gradient-to-b from-sky-300 to-emerald-200 flex justify-center items-end overflow-hidden">
+                <!-- Arka Plan Süsleri -->
+                <div class="absolute top-4 left-8 text-6xl opacity-30 float-animation">☁️</div>
+                <div class="absolute top-12 right-12 text-4xl opacity-40 float-animation" style="animation-delay: 1s;">☁️</div>
+                <div class="absolute top-6 right-6 text-5xl animate-spin" style="animation-duration: 15s;">🌞</div>
+                
+                <!-- Uçan Kelebek -->
+                <div class="absolute top-16 left-16 text-2xl float-animation" style="animation-duration: 4s;">🦋</div>
+                
+                <!-- Dinamik Bitki Container -->
+                <div id="plant-container" class="relative flex flex-col items-center mb-8 transition-all duration-500">
+                    <!-- Dinamik Bitki SVG'si buraya gelecek -->
+                    <div id="dynamic-plant" class="w-48 h-56 flex items-end justify-center transition-all duration-700 origin-bottom">
+                        <!-- SVG JS ile inject edilecek -->
+                    </div>
+                    <!-- Saksı -->
+                    <div class="w-40 h-28 bg-gradient-to-r from-amber-600 to-amber-700 rounded-b-3xl relative shadow-2xl flex items-center justify-center border-4 border-amber-800">
+                        <div class="w-44 h-6 bg-amber-800 absolute -top-3 rounded-md border-2 border-amber-900"></div>
+                        <!-- Saksı Deseni -->
+                        <div class="text-amber-900 opacity-40 text-3xl"><i class="fa-solid fa-leaf"></i></div>
+                    </div>
+                </div>
+
+                <!-- Maskot Mesajı (Oyun İçi) -->
+                <div id="mascot-bubble" class="absolute bottom-36 right-4 bg-white p-3 rounded-2xl shadow-lg text-sm font-bold text-gray-700 max-w-[140px] text-center border-2 border-yellow-200">
+                    <div class="absolute -bottom-2 right-6 w-4 h-4 bg-white transform rotate-45 border-r-2 border-b-2 border-yellow-200"></div>
+                    Büyümeye hazırım! 🌱
+                </div>
+                
+                <!-- Maskot Resmi -->
+                <img src="maskot.png" alt="Maskot" id="maskot-image">
+                
+                <!-- Maskot Karakteri -->
+                <div id="mascot-character" class="absolute bottom-4 left-4 w-20 h-20 hidden">
+                    <div class="relative">
+                        <div class="absolute -inset-2 bg-yellow-300 rounded-full blur opacity-30"></div>
+                        <div class="relative w-20 h-20 flex items-center justify-center">
+                            <i class="fas fa-seedling text-4xl text-green-500"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kontrol Paneli -->
+            <div class="p-6 bg-gradient-to-b from-white to-emerald-50 rounded-t-3xl -mt-6 relative z-10 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] min-h-[45vh]">
+                
+                <!-- Süre ve Durum -->
+                <div class="text-center mb-6">
+                    <div class="text-6xl font-fredoka font-bold text-gray-800 tracking-wider mb-2" id="timer-display">00:00</div>
+                    <p class="text-gray-600 text-sm font-medium" id="status-text">Süre seç ve odaklan! 🎯</p>
+                    <div class="inline-block mt-2 px-3 py-1 bg-gradient-to-r from-green-100 to-cyan-100 rounded-full">
+                        <span class="text-xs font-bold text-green-700" id="default-time-info">Varsayılan: <span id="default-minutes">25</span> dk</span>
+                    </div>
+                </div>
+
+                <!-- Süre Değişiklik İsteği -->
+                <div id="duration-request-section" class="mb-6 bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-2xl border-2 border-yellow-200 hidden">
+                    <p class="text-sm font-bold text-gray-800 mb-2">Ebeveynden süre değişikliği istendi!</p>
+                    <p class="text-xs text-gray-600 mb-3">İstediğin süre: <span id="requested-time" class="font-bold">30 dakika</span></p>
+                    <div class="flex gap-2">
+                        <button onclick="app.game.cancelRequest()" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-xl text-sm font-bold">İptal</button>
+                        <button onclick="app.game.checkRequestStatus()" class="flex-1 bg-blue-500 text-white py-2 rounded-xl text-sm font-bold">Durumu Kontrol Et</button>
+                    </div>
+                </div>
+
+                <!-- Slider / Input -->
+                <div id="setup-controls" class="mb-6 transition-all">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-sm font-bold text-gray-700">Odaklanma Süresi</label>
+                        <button onclick="app.game.requestDurationChange()" class="text-xs bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-700 font-bold px-3 py-1 rounded-full">
+                            <i class="fas fa-clock mr-1"></i> Süre Değiştir
+                        </button>
+                    </div>
+                    <input type="range" id="duration-slider" min="5" max="120" step="5" value="25" class="w-full h-3 bg-gradient-to-r from-green-200 to-cyan-200 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-green-500 [&::-webkit-slider-thumb]:to-cyan-500 [&::-webkit-slider-thumb]:border-4 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-lg">
+                    <div class="flex justify-between text-xs text-gray-500 mt-2">
+                        <span>5 dk</span>
+                        <span class="font-bold text-green-600 text-lg" id="slider-value">25 dk</span>
+                        <span>120 dk</span>
+                    </div>
+                </div>
+
+                <!-- Butonlar -->
+                <div class="space-y-4 pb-4">
+                    <button id="btn-start" onclick="app.game.startSession()" class="btn-childish w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-5 rounded-2xl shadow-lg text-lg flex items-center justify-center gap-3">
+                        <i class="fa-solid fa-seedling text-2xl"></i> 
+                        <span>Bitkiyi Ek ve Başla!</span>
+                    </button>
+
+                    <button id="btn-giveup" onclick="app.game.giveUp()" class="btn-childish hidden w-full bg-gradient-to-r from-red-400 to-pink-500 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-skull"></i> Vazgeç (Bitki Solar!)
+                    </button>
+                </div>
+                
+                <!-- Çapraz Cihaz Durumu -->
+                <div id="cross-device-status" class="mt-6 p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl border-2 border-purple-200 hidden">
+                    <div class="flex items-center">
+                        <div class="text-purple-600 text-xl mr-3">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-xs font-bold text-purple-800">Çapraz Cihaz Kilit Aktif</p>
+                            <p class="text-xs text-purple-600">Diğer cihazlarınız da kilitlendi!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. EBEVEYN PANELİ (Dashboard) -->
+        <div id="view-parent-dashboard" class="view-section momentum-scroll">
+            <div class="p-6">
+                <div class="flex justify-between items-center mt-4 mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">Ebeveyn Kontrol Merkezi</h2>
+                        <p class="text-sm text-gray-500">Hoş geldiniz, <span id="parent-name">Ebeveyn</span>!</p>
+                    </div>
+                    <button onclick="app.auth.logout()" class="text-red-500 bg-red-50 w-10 h-10 rounded-full flex items-center justify-center">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+
+                <!-- Hızlı İstatistikler -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="card-childish p-4 text-center">
+                        <div class="text-3xl text-blue-500 mb-2">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <p class="text-xs text-gray-500 font-bold">Bugünkü Toplam</p>
+                        <p class="text-2xl font-bold text-gray-800">45 Dk</p>
+                    </div>
+                    <div class="card-childish p-4 text-center">
+                        <div class="text-3xl text-green-500 mb-2">
+                            <i class="fas fa-seedling"></i>
+                        </div>
+                        <p class="text-xs text-gray-500 font-bold">Büyüyen Bitkiler</p>
+                        <p class="text-2xl font-bold text-gray-800">12</p>
+                    </div>
+                </div>
+
+                <!-- Çocuk Seçici -->
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="font-bold text-gray-700">Çocuklarım</h3>
+                        <button onclick="app.parentPanel.showAddChildModal()" class="text-sm bg-gradient-to-r from-green-500 to-blue-500 text-white px-3 py-1 rounded-full font-bold">
+                            <i class="fas fa-plus mr-1"></i> Yeni Çocuk Ekle
+                        </button>
+                    </div>
+                    <div id="children-list" class="space-y-3">
+                        <!-- Çocuk kartları JS ile eklenecek -->
+                    </div>
+                </div>
+
+                <!-- Programlama ve Kurallar -->
+                <div class="card-childish p-5 mb-6">
+                    <h3 class="font-bold text-gray-800 mb-4">Haftalık Ekran Programı</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                            <div>
+                                <p class="font-bold text-gray-700 text-sm">Varsayılan Süre</p>
+                                <p class="text-xs text-gray-500">Bir oturum için standart süre</p>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="number" id="default-duration" min="5" max="120" value="25" class="w-16 text-center p-2 border-2 border-green-300 rounded-lg mr-2">
+                                <span class="text-gray-700 font-bold">dk</span>
+                            </div>
+                        </div>
+                        
+                        <div class="p-3 bg-blue-50 rounded-xl">
+                            <p class="font-bold text-blue-700 text-sm mb-2">Çapraz Cihaz Kilidi</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-blue-600">Bir cihazda başlatılan süre diğerlerini de kitler</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="cross-device-lock" class="sr-only" checked>
+                                    <label for="cross-device-lock" class="block w-12 h-6 bg-green-500 rounded-full cursor-pointer">
+                                        <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="app.parentPanel.saveSettings()" class="w-full mt-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold py-3 rounded-xl">
+                        Ayarları Kaydet
+                    </button>
+                </div>
+
+                <!-- Bildirimler -->
+                <div class="card-childish p-5 mb-6">
+                    <h3 class="font-bold text-gray-800 mb-4">Bekleyen İstekler</h3>
+                    <div id="pending-requests">
+                        <!-- İstekler JS ile eklenecek -->
+                        <p class="text-gray-500 text-center py-4">Henüz istek bulunmuyor</p>
+                    </div>
+                </div>
+
+                <!-- Haftalık Takvim -->
+                <div class="card-childish p-5 mb-24">
+                    <h3 class="font-bold text-gray-800 mb-4">Haftalık Takvim</h3>
+                    <div class="grid grid-cols-7 gap-2 mb-4">
+                        <div class="text-center text-xs font-bold text-gray-500">Pzt</div>
+                        <div class="text-center text-xs font-bold text-gray-500">Sal</div>
+                        <div class="text-center text-xs font-bold text-gray-500">Çar</div>
+                        <div class="text-center text-xs font-bold text-gray-500">Per</div>
+                        <div class="text-center text-xs font-bold text-gray-500">Cum</div>
+                        <div class="text-center text-xs font-bold text-gray-500">Cmt</div>
+                        <div class="text-center text-xs font-bold text-gray-500">Paz</div>
+                        
+                        <!-- Takvim günleri JS ile doldurulacak -->
+                        <div class="col-span-7 text-center py-8 text-gray-400">
+                            <i class="fas fa-calendar-alt text-3xl mb-2 block"></i>
+                            <p class="text-sm">Takvim görünümü yakında eklenecek</p>
+                        </div>
+                    </div>
+                    <button onclick="app.router.navigate('calendar')" class="w-full bg-gradient-to-r from-green-100 to-blue-100 text-green-700 font-bold py-2 rounded-xl border-2 border-green-200">
+                        Takvimi Düzenle
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. TAKVİM EKRANI -->
+        <div id="view-calendar" class="view-section momentum-scroll">
+            <div class="p-6">
+                <div class="flex items-center mb-8 mt-4">
+                    <button onclick="app.router.navigate('parent-dashboard')" class="text-gray-500 text-2xl mr-4">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h2 class="text-2xl font-bold text-gray-800">Haftalık Takvim 📅</h2>
+                </div>
+                
+                <div class="mb-6">
+                    <p class="text-gray-600 mb-4">Her gün için maksimum ekran süresini ayarlayın. Çocuk, bu süreleri aşamaz.</p>
+                    
+                    <div id="weekly-calendar" class="space-y-4">
+                        <!-- Haftanın günleri buraya eklenecek -->
+                    </div>
+                </div>
+                
+                <button onclick="app.parentPanel.saveCalendar()" class="btn-childish w-full bg-gradient-to-r from-green-500 to-blue-500 text-white font-bold py-4 rounded-2xl">
+                    <i class="fas fa-save mr-2"></i> Takvimi Kaydet
+                </button>
+            </div>
+        </div>
+
+        <!-- 8. RAPORLAR EKRANI -->
+        <div id="view-reports" class="view-section momentum-scroll">
+            <div class="p-6">
+                <div class="flex items-center mb-8 mt-4">
+                    <button onclick="app.router.navigate('parent-dashboard')" class="text-gray-500 text-2xl mr-4">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h2 class="text-2xl font-bold text-gray-800">Performans Raporları 📊</h2>
+                </div>
+                
+                <div class="space-y-6">
+                    <div class="card-childish p-5">
+                        <h3 class="font-bold text-gray-800 mb-4">Haftalık Özet</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-700">Toplam Odaklanma Süresi</span>
+                                <span class="font-bold text-green-600">3 saat 45 dakika</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-700">Kural İhlali Sayısı</span>
+                                <span class="font-bold text-red-600">2</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-700">Kazanılan Yıldız</span>
+                                <span class="font-bold text-yellow-600">125 ⭐</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-childish p-5">
+                        <h3 class="font-bold text-gray-800 mb-4">Günlük İlerleme</h3>
+                        <div id="daily-progress">
+                            <!-- Günlük ilerleme çubukları -->
+                        </div>
+                    </div>
+                    
+                    <div class="card-childish p-5">
+                        <h3 class="font-bold text-gray-800 mb-4">Kural İhlalleri</h3>
+                        <div id="violations-list">
+                            <!-- İhlal listesi -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 9. TOHUMLARIM (Koleksiyon & Şans) -->
+        <div id="view-seeds" class="view-section momentum-scroll">
+            <div class="p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 mt-4">Tohum Bankası 🌱</h2>
+                
+                <!-- Sekmeler -->
+                <div class="flex mb-6 border-b-2 border-gray-100">
+                    <button id="tab-virtual" onclick="app.store.showTab('virtual')" class="tab-btn flex-1 py-3 text-center font-bold text-gray-700 border-b-4 border-green-500">
+                        Sanal Koleksiyon
+                    </button>
+                    <button id="tab-real" onclick="app.store.showTab('real')" class="tab-btn flex-1 py-3 text-center font-bold text-gray-500">
+                        Gerçek Tohumlar
+                    </button>
+                </div>
+                
+                <!-- Sanal Koleksiyon İçeriği -->
+                <div id="virtual-collection" class="tab-content">
+                    <!-- Çark Bölümü -->
+                    <div class="card-childish p-6 mb-6 text-center relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-purple-400 via-pink-400 to-red-400"></div>
+                        <div class="flex items-center justify-center mb-4">
+                            <div class="w-10 h-10 bg-gradient-to-r from-yellow-300 to-orange-300 rounded-full flex items-center justify-center mr-3">
+                                <i class="fas fa-gift text-white"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-gray-700">Haftalık Hediye Çarkı</h3>
+                        </div>
+                        <p class="text-xs text-gray-400 mb-4">Haftada 1 kez çevirebilirsin!</p>
+                        
+                        <div class="relative w-56 h-56 mx-auto mb-6">
+                            <!-- İşaretçi -->
+                            <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-3 z-10">
+                                <div class="w-0 h-0 border-l-[12px] border-r-[12px] border-b-[20px] border-l-transparent border-r-transparent border-b-red-500"></div>
+                            </div>
+                            <!-- SVG Çark -->
+                            <svg id="wheel-svg" class="w-full h-full transform transition-transform duration-[4000ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]" viewBox="0 0 100 100">
+                                <!-- Dilimler JS ile çizilecek -->
+                            </svg>
+                        </div>
+
+                        <div class="mb-4">
+                            <p class="text-sm text-gray-600 mb-2">Kalan çevirme hakkı:</p>
+                            <div class="inline-flex items-center bg-gradient-to-r from-blue-50 to-cyan-50 px-4 py-2 rounded-full">
+                                <span class="text-blue-700 font-bold mr-2" id="wheel-spins-left">1</span>
+                                <span class="text-blue-600 text-sm">/ 1 (haftalık)</span>
+                            </div>
+                        </div>
+
+                        <button onclick="app.store.spinWheel()" class="btn-childish bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 px-8 rounded-full shadow-lg text-lg">
+                            Çarkı Çevir! (5 <i class="fa-solid fa-droplet"></i>)
+                        </button>
+                    </div>
+
+                    <!-- Koleksiyon Grid -->
+                    <div class="flex justify-between items-end mb-4">
+                        <h3 class="text-lg font-bold text-gray-700">Koleksiyonum</h3>
+                        <span class="text-xs bg-gradient-to-r from-green-100 to-cyan-100 text-green-700 px-3 py-1 rounded-full font-bold" id="collection-count">0/15</span>
+                    </div>
+                    
+                    <div id="collection-grid" class="grid grid-cols-3 gap-4 pb-32">
+                        <!-- Kartlar JS ile doldurulacak -->
+                    </div>
+                </div>
+                
+                <!-- Gerçek Tohumlar İçeriği -->
+                <div id="real-seeds" class="tab-content hidden">
+                    <div class="text-center mb-6">
+                        <div class="w-20 h-20 bg-gradient-to-r from-green-200 to-emerald-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-seedling text-4xl text-green-600"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">Gerçek Tohumlar</h3>
+                        <p class="text-gray-600 text-sm">Performansına göre her 3 ayda bir gerçek tohumlar kazanırsın!</p>
+                    </div>
+                    
+                    <div class="space-y-6 pb-32">
+                        <!-- Kargo Durumu -->
+                        <div class="card-childish p-5">
+                            <div class="flex items-start mb-4">
+                                <div class="w-12 h-12 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-xl flex items-center justify-center mr-4">
+                                    <i class="fas fa-shipping-fast text-2xl text-blue-500"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-gray-800">Kargo Takibi</h4>
+                                    <p class="text-xs text-gray-500">Son tohum gönderim durumun</p>
+                                </div>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-xl">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-bold text-gray-700">Domates Tohumu</span>
+                                    <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Yolda</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2 mb-1">
+                                    <div class="bg-gradient-to-r from-green-400 to-blue-400 h-2 rounded-full" style="width: 75%"></div>
+                                </div>
+                                <p class="text-xs text-gray-500">Tahmini varış: 15 Mayıs</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Kazanılan Gerçek Tohumlar -->
+                        <div>
+                            <h4 class="font-bold text-gray-800 mb-3">Kazandığın Tohumlar</h4>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="card-childish p-4 text-center">
+                                    <div class="text-3xl mb-2">🍅</div>
+                                    <p class="text-sm font-bold text-gray-800">Domates</p>
+                                    <p class="text-xs text-gray-500">Mayıs 2024</p>
+                                </div>
+                                <div class="card-childish p-4 text-center">
+                                    <div class="text-3xl mb-2">🌻</div>
+                                    <p class="text-sm font-bold text-gray-800">Ayçiçeği</p>
+                                    <p class="text-xs text-gray-500">Şubat 2024</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Nasıl Ekilir -->
+                        <div class="card-childish p-5">
+                            <h4 class="font-bold text-gray-800 mb-3">Nasıl Ekilir? 📹</h4>
+                            <div class="bg-gradient-to-r from-green-100 to-blue-100 rounded-xl p-4 text-center">
+                                <i class="fas fa-play-circle text-5xl text-green-500 mb-3"></i>
+                                <p class="text-sm font-bold text-gray-800 mb-2">Tohum Ekim Rehberi</p>
+                                <p class="text-xs text-gray-600 mb-3">Tohumlarını nasıl ekeceğini öğren!</p>
+                                <button class="bg-gradient-to-r from-green-500 to-blue-500 text-white text-sm font-bold px-4 py-2 rounded-full">
+                                    Videoyu İzle
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 10. SOSYAL & ARKADAŞLAR -->
+        <div id="view-social" class="view-section momentum-scroll">
+            <div class="p-6">
+                <div class="flex justify-between items-center mt-4 mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Arkadaşlar 👫</h2>
+                    <button onclick="app.social.openFriendRequest()" class="text-blue-500 text-sm font-bold bg-blue-50 px-4 py-2 rounded-full border-2 border-blue-200">
+                        <i class="fa-solid fa-user-plus mr-1"></i> Arkadaş Ekle
+                    </button>
+                </div>
+
+                <!-- Aile Etkinliği Paneli -->
+                <div class="card-childish p-5 mb-6 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-gradient-to-r from-orange-300 to-red-300 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-users text-xl text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-800">Aile Etkinliği</h3>
+                            <p class="text-xs text-gray-600">Ailenle birlikte yap!</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-bold text-gray-700">Bugünün Görevi</span>
+                            <span class="text-xs bg-gradient-to-r from-green-100 to-blue-100 text-green-700 px-2 py-1 rounded-full">+50 Puan</span>
+                        </div>
+                        <p class="text-gray-700 bg-white p-3 rounded-xl border-2 border-orange-200">"Ailenle birlikte kurabiye yap ve fotoğrafını paylaş!" 🍪</p>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <button onclick="app.familyActivity.uploadPhoto()" class="w-full bg-gradient-to-r from-orange-400 to-red-400 text-white font-bold py-3 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-camera mr-2"></i> Fotoğraf Yükle
+                        </button>
+                        <button onclick="app.familyActivity.viewGallery()" class="w-full bg-white text-orange-600 font-bold py-3 rounded-xl border-2 border-orange-300">
+                            <i class="fas fa-photo-video mr-2"></i> Hatıra Albümü
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Yıllık Hedef -->
+                <div class="card-childish p-5 mb-6">
+                    <h3 class="font-bold text-gray-800 mb-3">Yıllık Hedef 🎯</h3>
+                    <div class="mb-4">
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="font-bold text-gray-700">Büyük Ödül: Bisiklet 🚲</span>
+                            <span class="text-gray-600">%65</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-4">
+                            <div class="bg-gradient-to-r from-green-400 to-blue-400 h-4 rounded-full" style="width: 65%"></div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">1500/2500 puan toplandı</p>
+                    </div>
+                </div>
+
+                <!-- Sosyal Gönderiler -->
+                <div class="space-y-4 pb-32">
+                    <div class="card-childish p-4">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-12 h-12 rounded-full bg-gradient-to-r from-pink-300 to-purple-300 flex items-center justify-center text-xl text-white">
+                                👧
+                            </div>
+                            <div>
+                                <p class="font-bold text-sm text-gray-800">Zeynep'in Bahçesi</p>
+                                <p class="text-xs text-gray-400">2 saat önce</p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-3">Sonunda Nadir Lale'mi büyüttüm! Çok mutluyum 🌷✨ #Başarı</p>
+                        <div class="h-40 bg-gradient-to-r from-pink-100 to-purple-100 rounded-xl flex items-center justify-center border-2 border-pink-200 mb-3">
+                            <div class="text-5xl">🌷</div>
+                        </div>
+                        <div class="flex gap-4">
+                            <button class="text-gray-400 hover:text-red-500 transition text-sm"><i class="fa-regular fa-heart"></i> 12</button>
+                            <button class="text-gray-400 hover:text-blue-500 transition text-sm"><i class="fa-regular fa-comment"></i> 3</button>
+                            <button class="text-gray-400 hover:text-green-500 transition text-sm"><i class="fa-regular fa-share-from-square"></i> Paylaş</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 11. MARKET -->
+        <div id="view-market" class="view-section momentum-scroll">
+            <div class="p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 mt-4">Market 🛒</h2>
+                
+                <!-- Cüzdan -->
+                <div class="card-childish bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 rounded-3xl shadow-lg mb-6 flex justify-around items-center border-4 border-white">
+                    <div class="text-center">
+                        <p class="text-xs opacity-80">Yıldız Puanı</p>
+                        <p class="text-3xl font-bold text-yellow-300"><i class="fa-solid fa-star"></i> <span id="market-stars">0</span></p>
+                    </div>
+                    <div class="w-px h-12 bg-white bg-opacity-30"></div>
+                    <div class="text-center">
+                        <p class="text-xs opacity-80">Su Damlası</p>
+                        <p class="text-3xl font-bold text-blue-300"><i class="fa-solid fa-droplet"></i> <span id="market-water">0</span></p>
+                    </div>
+                </div>
+
+                <!-- QR Kod Oluştur KARTI KALDIRILDI -->
+
+                <!-- Ürün Kategorileri -->
+                <div class="flex overflow-x-auto gap-3 mb-6 pb-2 no-scrollbar">
+                    <button class="category-btn flex-shrink-0 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-full font-bold">Saksılar</button>
+                    <button class="category-btn flex-shrink-0 bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-4 py-2 rounded-full font-bold">Dekorasyon</button>
+                    <button class="category-btn flex-shrink-0 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full font-bold">Temalar</button>
+                    <button class="category-btn flex-shrink-0 bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-4 py-2 rounded-full font-bold">Özel</button>
+                </div>
+
+                <!-- Ürün Listesi -->
+                <div class="space-y-4 pb-32">
+                    <!-- Ürün 1 -->
+                    <div class="card-childish p-4 flex justify-between items-center">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 bg-gradient-to-r from-yellow-100 to-amber-100 rounded-2xl flex items-center justify-center text-3xl">
+                                🏺
+                            </div>
+                            <div>
+                                <p class="font-bold text-gray-800 text-sm">Altın Saksı</p>
+                                <p class="text-xs text-gray-500">Bitki büyümesini %10 hızlandırır.</p>
+                                <div class="flex items-center mt-1">
+                                    <i class="fas fa-star text-yellow-400 text-xs mr-1"></i>
+                                    <span class="text-xs font-bold text-gray-700">500</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="app.store.buyItem('pot_gold', 500)" class="bg-gradient-to-r from-yellow-400 to-amber-500 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg hover:shadow-amber-200 transition">
+                            Satın Al
+                        </button>
+                    </div>
+
+                    <!-- Ürün 2 -->
+                    <div class="card-childish p-4 flex justify-between items-center">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-2xl flex items-center justify-center text-3xl">
+                                🌈
+                            </div>
+                            <div>
+                                <p class="font-bold text-gray-800 text-sm">Gökkuşağı Çiti</p>
+                                <p class="text-xs text-gray-500">Bahçeni renklendir!</p>
+                                <div class="flex items-center mt-1">
+                                    <i class="fas fa-star text-yellow-400 text-xs mr-1"></i>
+                                    <span class="text-xs font-bold text-gray-700">300</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="app.store.buyItem('fence_rainbow', 300)" class="bg-gradient-to-r from-blue-400 to-cyan-500 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg hover:shadow-cyan-200 transition">
+                            Satın Al
+                        </button>
+                    </div>
+
+                    <!-- Ürün 3 -->
+                    <div class="card-childish p-4 flex justify-between items-center">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl flex items-center justify-center text-3xl">
+                                🌙
+                            </div>
+                            <div>
+                                <p class="font-bold text-gray-800 text-sm">Gece Teması</p>
+                                <p class="text-xs text-gray-500">Yıldızlı gece arka planı</p>
+                                <div class="flex items-center mt-1">
+                                    <i class="fas fa-star text-yellow-400 text-xs mr-1"></i>
+                                    <span class="text-xs font-bold text-gray-700">750</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="app.store.buyItem('theme_night', 750)" class="bg-gradient-to-r from-purple-400 to-pink-500 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg hover:shadow-purple-200 transition">
+                            Satın Al
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 12. AYARLAR -->
+        <div id="view-settings" class="view-section momentum-scroll">
+            <div class="p-6">
+                <div class="flex items-center mb-8 mt-4">
+                    <button onclick="app.router.navigate('garden')" class="text-gray-500 text-2xl mr-4">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h2 class="text-2xl font-bold text-gray-800">Ayarlar ⚙️</h2>
+                </div>
+
+                <div class="space-y-6 pb-32">
+                    <!-- Hesap Ayarları -->
+                    <div class="card-childish p-5">
+                        <h3 class="font-bold text-gray-800 mb-4">Hesap Ayarları</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-gradient-to-r from-green-100 to-blue-100 rounded-full flex items-center justify-center mr-3">
+                                        <i class="fas fa-user text-green-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-gray-700 text-sm">Profil Bilgileri</p>
+                                        <p class="text-xs text-gray-500">Kullanıcı adı, profil resmi</p>
+                                    </div>
+                                </div>
+                                <button onclick="app.settings.editProfile()" class="text-blue-500 font-bold text-sm">
+                                    Düzenle
+                                </button>
+                            </div>
+
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-gradient-to-r from-purple-100 to-pink-100 rounded-full flex items-center justify-center mr-3">
+                                        <i class="fas fa-exchange-alt text-purple-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-gray-700 text-sm">Hesap Değiştir</p>
+                                        <p class="text-xs text-gray-500">Kardeş hesapları arasında geçiş yap</p>
+                                    </div>
+                                </div>
+                                <button onclick="app.profile.showAccountSwitcher()" class="text-blue-500 font-bold text-sm">
+                                    Aç
+                                </button>
+                            </div>
+
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-gradient-to-r from-red-100 to-pink-100 rounded-full flex items-center justify-center mr-3">
+                                        <i class="fas fa-sign-out-alt text-red-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-gray-700 text-sm">Çıkış Yap</p>
+                                        <p class="text-xs text-gray-500">Hesabından çıkış yap</p>
+                                    </div>
+                                </div>
+                                <button onclick="app.auth.logout()" class="text-red-500 font-bold text-sm">
+                                    Çıkış
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Uygulama Ayarları -->
+                    <div class="card-childish p-5">
+                        <h3 class="font-bold text-gray-800 mb-4">Uygulama Ayarları</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-full flex items-center justify-center mr-3">
+                                        <i class="fas fa-language text-blue-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-gray-700 text-sm">Dil</p>
+                                        <p class="text-xs text-gray-500">Uygulama dili</p>
+                                    </div>
+                                </div>
+                                <select id="language-select" class="bg-gray-100 text-gray-700 text-sm font-bold px-3 py-2 rounded-xl border-2 border-gray-200">
+                                    <option value="tr">Türkçe</option>
+                                    <option value="en">English</option>
+                                    <option value="es">Español</option>
+                                    <option value="de">Deutsch</option>
+                                </select>
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-full flex items-center justify-center mr-3">
+                                        <i class="fas fa-palette text-yellow-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-gray-700 text-sm">Tema</p>
+                                        <p class="text-xs text-gray-500">Açık/Koyu mod</p>
+                                    </div>
+                                </div>
+                                <div class="relative">
+                                    <input type="checkbox" id="theme-toggle" class="sr-only">
+                                    <label for="theme-toggle" class="block w-12 h-6 bg-gray-300 rounded-full cursor-pointer">
+                                        <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition"></div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-gradient-to-r from-green-100 to-emerald-100 rounded-full flex items-center justify-center mr-3">
+                                        <i class="fas fa-volume-up text-green-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-gray-700 text-sm">Ses Efektleri</p>
+                                        <p class="text-xs text-gray-500">Oyun seslerini aç/kapat</p>
+                                    </div>
+                                </div>
+                                <div class="relative">
+                                    <input type="checkbox" id="sound-toggle" class="sr-only" checked>
+                                    <label for="sound-toggle" class="block w-12 h-6 bg-green-500 rounded-full cursor-pointer">
+                                        <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition transform translate-x-6"></div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-gradient-to-r from-purple-100 to-pink-100 rounded-full flex items-center justify-center mr-3">
+                                        <i class="fas fa-bell text-purple-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-gray-700 text-sm">Bildirimler</p>
+                                        <p class="text-xs text-gray-500">Bildirimleri aç/kapat</p>
+                                    </div>
+                                </div>
+                                <div class="relative">
+                                    <input type="checkbox" id="notification-toggle" class="sr-only" checked>
+                                    <label for="notification-toggle" class="block w-12 h-6 bg-green-500 rounded-full cursor-pointer">
+                                        <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition transform translate-x-6"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Oyun Ayarları -->
+                    <div class="card-childish p-5">
+                        <h3 class="font-bold text-gray-800 mb-4">Oyun Ayarları</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Zorluk Seviyesi</label>
+                                <select id="difficulty-select" class="w-full bg-gray-100 text-gray-700 text-sm font-bold px-3 py-3 rounded-xl border-2 border-gray-200">
+                                    <option value="easy">Kolay (Daha fazla su)</option>
+                                    <option value="normal" selected>Normal (Standart)</option>
+                                    <option value="hard">Zor (Daha az su)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Varsayılan Bitki Süresi</label>
+                                <div class="flex items-center">
+                                    <input type="range" id="default-plant-duration" min="10" max="60" step="5" value="25" class="flex-1 h-3 bg-gradient-to-r from-green-200 to-cyan-200 rounded-full appearance-none cursor-pointer">
+                                    <span class="ml-4 font-bold text-green-600 w-16 text-center" id="duration-value">25 dk</span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                                <div>
+                                    <p class="font-bold text-gray-700 text-sm">Çapraz Cihaz Kilidi</p>
+                                    <p class="text-xs text-gray-500">Tüm cihazları aynı anda kilitle</p>
+                                </div>
+                                <div class="relative">
+                                    <input type="checkbox" id="cross-device-setting" class="sr-only" checked>
+                                    <label for="cross-device-setting" class="block w-12 h-6 bg-green-500 rounded-full cursor-pointer">
+                                        <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition transform translate-x-6"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Veri ve Gizlilik -->
+                    <div class="card-childish p-5">
+                        <h3 class="font-bold text-gray-800 mb-4">Veri ve Gizlilik</h3>
+                        <div class="space-y-3">
+                            <button onclick="app.settings.showPrivacyPolicy()" class="w-full text-left p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
+                                <p class="font-bold text-gray-700 text-sm">Gizlilik Politikası</p>
+                                <p class="text-xs text-gray-500">Verilerinizi nasıl kullandığımızı öğrenin</p>
+                            </button>
+
+                            <button onclick="app.settings.showTerms()" class="w-full text-left p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
+                                <p class="font-bold text-gray-700 text-sm">Kullanım Koşulları</p>
+                                <p class="text-xs text-gray-500">Hizmet şartlarımız</p>
+                            </button>
+
+                            <button onclick="app.settings.exportData()" class="w-full text-left p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
+                                <p class="font-bold text-gray-700 text-sm">Verilerimi Dışa Aktar</p>
+                                <p class="text-xs text-gray-500">Oyun verilerinizi yedekleyin</p>
+                            </button>
+
+                            <button onclick="app.settings.resetProgress()" class="w-full text-left p-3 bg-red-50 rounded-xl hover:bg-red-100 transition">
+                                <p class="font-bold text-red-700 text-sm">İlerlemeyi Sıfırla</p>
+                                <p class="text-xs text-red-500">Tüm verilerinizi silin</p>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Hakkında -->
+                    <div class="card-childish p-5">
+                        <h3 class="font-bold text-gray-800 mb-4">Hakkında</h3>
+                        <div class="space-y-4">
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-gradient-to-r from-green-300 to-blue-300 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i class="fas fa-seedling text-3xl text-white"></i>
+                                </div>
+                                <h4 class="font-bold text-gray-800 text-lg">Fido</h4>
+                                <p class="text-sm text-gray-600">Ekranı kapat, anılarını büyüt!</p>
+                                <p class="text-xs text-gray-500 mt-2">Versiyon 1.0.0</p>
+                            </div>
+
+                            <div class="space-y-2">
+                                <button onclick="app.settings.contactSupport()" class="w-full text-left p-3 bg-blue-50 rounded-xl hover:bg-blue-100 transition">
+                                    <p class="font-bold text-blue-700 text-sm">Destek İletişimi</p>
+                                    <p class="text-xs text-blue-500">Sorularınız için bize ulaşın</p>
+                                </button>
+
+                                <button onclick="app.settings.rateApp()" class="w-full text-left p-3 bg-yellow-50 rounded-xl hover:bg-yellow-100 transition">
+                                    <p class="font-bold text-yellow-700 text-sm">Uygulamayı Değerlendir</p>
+                                    <p class="text-xs text-yellow-500">Fikirleriniz bizim için önemli</p>
+                                </button>
+
+                                <button onclick="app.settings.shareApp()" class="w-full text-left p-3 bg-green-50 rounded-xl hover:bg-green-100 transition">
+                                    <p class="font-bold text-green-700 text-sm">Arkadaşlarınla Paylaş</p>
+                                    <p class="text-xs text-green-500">Fido'yu daha çok çocuğa ulaştır</p>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ayarları Kaydet Butonu -->
+                    <button onclick="app.settings.saveSettings()" class="btn-childish w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold py-4 rounded-2xl text-lg shadow-lg">
+                        <i class="fas fa-save mr-2"></i> Ayarları Kaydet
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 13. YENİ QR KOD EKRANI -->
+        <div id="view-qr-code" class="view-section momentum-scroll">
+            <div class="p-6">
+                <div class="flex items-center mb-8 mt-4">
+                    <button onclick="app.router.navigate('garden')" class="text-gray-500 text-2xl mr-4">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h2 class="text-2xl font-bold text-gray-800">QR Kod 📱</h2>
+                </div>
+
+                <div class="space-y-6 pb-32">
+                    <!-- QR Kod Oluşturma -->
+                    <div class="card-childish p-6 text-center">
+                        <div class="w-20 h-20 bg-gradient-to-r from-green-300 to-blue-300 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-qrcode text-4xl text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">Puanını QR Koda Çevir</h3>
+                        <p class="text-gray-600 text-sm mb-6">Oluşturduğun QR kodu ebeveyne göster, alışveriş için kodunu okut ve puanını kullan!</p>
+                        
+                        <div class="flex items-center mb-6">
+                            <input type="number" id="qr-amount-main" min="10" max="1000" value="100" class="flex-1 p-4 border-2 border-green-300 rounded-xl text-center text-lg font-bold" placeholder="Puan miktarı">
+                            <span class="ml-3 text-2xl text-yellow-500">
+                                <i class="fa-solid fa-star"></i>
+                            </span>
+                        </div>
+                        
+                        <button onclick="app.market.generateQRFromMain()" class="btn-childish w-full bg-gradient-to-r from-green-500 to-blue-500 text-white font-bold py-4 rounded-2xl text-lg">
+                            <i class="fas fa-qrcode mr-2"></i> QR Kod Oluştur
+                        </button>
+                    </div>
+
+                    <!-- QR Kod Görüntüleme -->
+                    <div id="qr-display-section" class="card-childish p-6 text-center hidden">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">QR Kodun Hazır!</h3>
+                        <p class="text-gray-600 text-sm mb-6">Bu kodu ebeveyne göster ve alışveriş için kodunu okut.</p>
+                        
+                        <div class="bg-gradient-to-br from-white to-gray-100 p-8 rounded-2xl border-4 border-dashed border-green-200 mb-6 flex flex-col items-center justify-center">
+                            <div class="text-8xl mb-4">📱</div>
+                            <div class="text-5xl font-mono font-bold mb-2" id="qr-code-display">FIDO-****-QR</div>
+                            <p class="text-xs text-gray-500">Alışveriş için kodunu okut</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <button onclick="app.market.copyQRCode()" class="bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold py-3 rounded-xl">
+                                <i class="fas fa-copy mr-2"></i> Kopyala
+                            </button>
+                            <button onclick="app.market.shareQRCode()" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 rounded-xl">
+                                <i class="fas fa-share mr-2"></i> Paylaş
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Bilgilendirme -->
+                    <div class="card-childish p-6 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200">
+                        <div class="flex items-start mb-4">
+                            <div class="text-2xl text-yellow-600 mr-3">
+                                <i class="fas fa-lightbulb"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-800 mb-2">Nasıl Kullanılır?</h4>
+                                <ul class="text-sm text-gray-700 space-y-2">
+                                    <li>1. Puan miktarını gir ve QR kod oluştur</li>
+                                    <li>2. Oluşan kodu ebeveyne göster</li>
+                                    <li>3. Ebeveyn kodu okutarak puanını kullanabilir</li>
+                                    <li>4. Marketten alışveriş yapmak için kullan</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Geçmiş QR Kodlar -->
+                    <div class="card-childish p-6">
+                        <h4 class="font-bold text-gray-800 mb-4">Son QR Kodlarım</h4>
+                        <div id="qr-history" class="space-y-3">
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                                <div>
+                                    <p class="font-bold text-gray-700">100 Puan</p>
+                                    <p class="text-xs text-gray-500">10 Mayıs 2024</p>
+                                </div>
+                                <span class="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full">Kullanıldı</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                                <div>
+                                    <p class="font-bold text-gray-700">250 Puan</p>
+                                    <p class="text-xs text-gray-500">5 Mayıs 2024</p>
+                                </div>
+                                <span class="text-xs bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full">Bekliyor</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ALT NAVİGASYON (Çocuk Arayüzü İçin) -->
+        <nav id="bottom-nav" class="absolute bottom-0 w-full bg-gradient-to-t from-white to-gray-50 border-t-2 border-gray-100 py-3 px-6 flex justify-between items-center z-40 hidden">
+            <button onclick="app.router.navigate('garden')" class="nav-btn active flex flex-col items-center text-gray-400 hover:text-green-500 transition">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center mb-1">
+                    <i class="fa-solid fa-house text-2xl"></i>
+                </div>
+                <span class="text-[10px] font-bold">Bahçem</span>
+            </button>
+            <button onclick="app.router.navigate('seeds')" class="nav-btn flex flex-col items-center text-gray-400 hover:text-green-500 transition">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center mb-1">
+                    <i class="fa-solid fa-clover text-2xl"></i>
+                </div>
+                <span class="text-[10px] font-bold">Tohumlar</span>
+            </button>
+            <!-- Yeni QR Butonu -->
+            <button onclick="app.router.navigate('qr-code')" class="nav-btn flex flex-col items-center text-gray-400 hover:text-green-500 transition">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center mb-1">
+                    <i class="fa-solid fa-qrcode text-2xl"></i>
+                </div>
+                <span class="text-[10px] font-bold">QR Kod</span>
+            </button>
+            <!-- Orta Buton (Hızlı Başlat) -->
+            <div class="relative -top-8">
+                <button onclick="app.game.quickStart()" class="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full shadow-2xl shadow-green-300 text-white text-3xl flex items-center justify-center border-6 border-white transform transition hover:scale-110 hover:shadow-green-400 bounce-animation">
+                    <i class="fa-solid fa-leaf"></i>
+                </button>
+            </div>
+            <button onclick="app.router.navigate('social')" class="nav-btn flex flex-col items-center text-gray-400 hover:text-green-500 transition">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center mb-1">
+                    <i class="fa-solid fa-users text-2xl"></i>
+                </div>
+                <span class="text-[10px] font-bold">Sosyal</span>
+            </button>
+            <button onclick="app.router.navigate('market')" class="nav-btn flex flex-col items-center text-gray-400 hover:text-green-500 transition">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center mb-1">
+                    <i class="fa-solid fa-shop text-2xl"></i>
+                </div>
+                <span class="text-[10px] font-bold">Market</span>
+            </button>
+            <!-- Yeni Ayarlar Butonu -->
+            <button onclick="app.router.navigate('settings')" class="nav-btn flex flex-col items-center text-gray-400 hover:text-green-500 transition">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center mb-1">
+                    <i class="fa-solid fa-gear text-2xl"></i>
+                </div>
+                <span class="text-[10px] font-bold">Ayarlar</span>
+            </button>
+        </nav>
+
+        <!-- EBEVEYN ALT NAVİGASYON -->
+        <nav id="parent-bottom-nav" class="absolute bottom-0 w-full bg-gradient-to-t from-white to-blue-50 border-t-2 border-blue-100 py-3 px-6 flex justify-between items-center z-40 hidden">
+            <button onclick="app.router.navigate('parent-dashboard')" class="nav-btn active flex flex-col items-center text-gray-400 hover:text-blue-500 transition">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center mb-1">
+                    <i class="fa-solid fa-chart-line text-2xl"></i>
+                </div>
+                <span class="text-[10px] font-bold">Kontrol</span>
+            </button>
+            <button onclick="app.router.navigate('calendar')" class="nav-btn flex flex-col items-center text-gray-400 hover:text-blue-500 transition">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center mb-1">
+                    <i class="fa-solid fa-calendar text-2xl"></i>
+                </div>
+                <span class="text-[10px] font-bold">Takvim</span>
+            </button>
+            <!-- Orta Buton (Çocuk Ekle) -->
+            <div class="relative -top-8">
+                <button onclick="app.parentPanel.showAddChildModal()" class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full shadow-2xl shadow-blue-300 text-white text-3xl flex items-center justify-center border-6 border-white transform transition hover:scale-110 hover:shadow-blue-400">
+                    <i class="fa-solid fa-child"></i>
+                </button>
+            </div>
+            <button onclick="app.router.navigate('reports')" class="nav-btn flex flex-col items-center text-gray-400 hover:text-blue-500 transition">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center mb-1">
+                    <i class="fa-solid fa-chart-bar text-2xl"></i>
+                </div>
+                <span class="text-[10px] font-bold">Raporlar</span>
+            </button>
+            <button onclick="app.parentPanel.openNotifications()" class="nav-btn flex flex-col items-center text-gray-400 hover:text-blue-500 transition">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center mb-1">
+                    <i class="fa-solid fa-bell text-2xl"></i>
+                </div>
+                <span class="text-[10px] font-bold">Bildirimler</span>
+            </button>
+        </nav>
+
+        <!-- MODALLAR -->
+
+        <!-- Hesap Değiştirici Modalı -->
+        <div id="modal-account-switcher" class="modal-container absolute inset-0 bg-black bg-opacity-80 hidden z-50 flex flex-col items-center justify-center p-8 backdrop-blur-sm">
+            <div class="bg-white rounded-3xl p-6 w-full max-w-xs text-center shadow-2xl">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Hesap Değiştir</h3>
+                <p class="text-gray-500 text-sm mb-6">Başka bir kardeşin hesabına geç</p>
+                
+                <div id="sibling-accounts" class="space-y-3 mb-6">
+                    <!-- Kardeş hesapları buraya eklenecek -->
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="document.getElementById('modal-account-switcher').classList.add('hidden')" class="bg-gray-200 text-gray-700 py-3 rounded-xl font-bold">İptal</button>
+                    <button onclick="app.profile.switchAccount()" class="bg-gradient-to-r from-green-500 to-blue-500 text-white py-3 rounded-xl font-bold shadow-lg">Geçiş Yap</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ebeveyn Çocuk Ekleme Modalı -->
+        <div id="modal-add-child" class="modal-container absolute inset-0 bg-black bg-opacity-80 hidden z-50 flex flex-col items-center justify-center p-8 backdrop-blur-sm">
+            <div class="bg-white rounded-3xl p-6 w-full max-w-xs text-center shadow-2xl">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Yeni Çocuk Ekle</h3>
+                
+                <div class="space-y-4 mb-6">
+                    <input type="text" id="child-name" class="w-full p-3 border-2 border-gray-200 rounded-xl" placeholder="Çocuğun Adı">
+                    <input type="text" id="child-username" class="w-full p-3 border-2 border-gray-200 rounded-xl" placeholder="Kullanıcı Adı">
+                    <input type="password" id="child-password" class="w-full p-3 border-2 border-gray-200 rounded-xl" placeholder="Şifre">
+                    
+                    <!-- Profil Resmi Seçici -->
+                    <div>
+                        <p class="text-sm text-gray-700 mb-2 text-left">Profil Resmi:</p>
+                        <div class="flex gap-3">
+                            <div class="profile-emoji-option w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center text-xl cursor-pointer border-2 border-pink-300">👦</div>
+                            <div class="profile-emoji-option w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-xl cursor-pointer border-2 border-gray-300">👧</div>
+                            <div class="profile-emoji-option w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-xl cursor-pointer border-2 border-gray-300">🧒</div>
+                            <div class="profile-emoji-option w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center text-xl cursor-pointer border-2 border-gray-300">👶</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="document.getElementById('modal-add-child').classList.add('hidden')" class="bg-gray-200 text-gray-700 py-3 rounded-xl font-bold">İptal</button>
+                    <button onclick="app.parentPanel.createChildAccount()" class="bg-gradient-to-r from-green-500 to-blue-500 text-white py-3 rounded-xl font-bold shadow-lg">Oluştur</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- QR Kod Gösterici -->
+        <div id="modal-qr-code" class="modal-container absolute inset-0 bg-black bg-opacity-80 hidden z-50 flex flex-col items-center justify-center p-8 backdrop-blur-sm">
+            <div class="bg-white rounded-3xl p-8 w-full max-w-xs text-center shadow-2xl">
+                <h3 class="text-xl font-bold text-gray-800 mb-2">QR Kod</h3>
+                <p class="text-gray-500 text-sm mb-6">Bu kodu ebeveyne göster ve puanını kullan! Alışveriş için kodunu okut.</p>
+                
+                <div class="bg-gray-100 p-6 rounded-2xl flex items-center justify-center mb-6">
+                    <div class="text-6xl">📱</div>
+                </div>
+                
+                <p class="text-gray-700 font-bold mb-2"><span id="qr-points">100</span> Puan</p>
+                <p class="text-xs text-gray-500 mb-6">Kod 24 saat geçerlidir</p>
+                
+                <button onclick="document.getElementById('modal-qr-code').classList.add('hidden')" class="w-full bg-gradient-to-r from-green-500 to-blue-500 text-white font-bold py-3 rounded-xl shadow-lg">Tamam</button>
+            </div>
+        </div>
+
+        <!-- Genel Mesaj Modalı -->
+        <div id="modal-message" class="modal-container absolute inset-0 bg-black bg-opacity-60 hidden z-[60] flex items-center justify-center p-6 backdrop-blur-sm">
+            <div class="bg-white rounded-3xl p-6 w-full max-w-xs text-center shadow-2xl transform transition-all scale-100">
+                <div id="msg-icon" class="text-5xl mb-4">🎉</div>
+                <h3 id="msg-title" class="text-xl font-bold text-gray-800 mb-2">Başlık</h3>
+                <p id="msg-body" class="text-gray-500 text-sm mb-6">Mesaj içeriği buraya gelecek.</p>
+                <button onclick="document.getElementById('modal-message').classList.add('hidden')" class="w-full bg-gradient-to-r from-green-500 to-blue-500 text-white font-bold py-3 rounded-xl shadow-lg">Tamam</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- UYGULAMA MANTIĞI ---
+        window.app = {
+            state: {
+                user: null,
+                userRole: null,
+                userData: null,
+                currentChildId: null,
+                stars: 0,
+                water: 10,
+                level: 1,
+                inventory: ['seed_basic'],
+                equippedPlant: 'seed_basic',
+                currentPlantStage: 0,
+                sessionActive: false,
+                timer: null,
+                crossDeviceLock: false,
+                wheelSpinsUsed: 0,
+                lastSpinDate: null,
+                qrHistory: [],
+                settings: {
+                    language: 'tr',
+                    theme: 'light',
+                    soundEnabled: true,
+                    notificationsEnabled: true,
+                    difficulty: 'normal',
+                    defaultPlantDuration: 25,
+                    crossDeviceLock: true
+                }
+            },
+            
+            // Bitki veritabanı
+            plantsDB: {
+                'seed_basic': { name: 'Filiz', emoji: '🌱', color: '#10B981', rarity: 'Sıradan' },
+                'flower_daisy': { name: 'Papatya', emoji: '🌼', color: '#F59E0B', rarity: 'Sıradan' },
+                'flower_tulip': { name: 'Lale', emoji: '🌷', color: '#EC4899', rarity: 'Nadir' },
+                'flower_rose': { name: 'Gül', emoji: '🌹', color: '#EF4444', rarity: 'Efsanevi' },
+                'tree_pine': { name: 'Çam', emoji: '🌲', color: '#065F46', rarity: 'Nadir' },
+                'cactus': { name: 'Kaktüs', emoji: '🌵', color: '#65A30D', rarity: 'Sıradan' },
+                'flower_sunflower': { name: 'Ayçiçeği', emoji: '🌻', color: '#FBBF24', rarity: 'Nadir' },
+                'flower_orchid': { name: 'Orkide', emoji: '🌸', color: '#D946EF', rarity: 'Efsanevi' },
+                'herb_mint': { name: 'Nane', emoji: '🌿', color: '#22C55E', rarity: 'Sıradan' },
+                'mushroom': { name: 'Mantar', emoji: '🍄', color: '#DC2626', rarity: 'Nadir' }
+            },
+
+            // Başlatma
+            init: function() {
+                console.log("Fido uygulaması başlatıldı!");
+                
+                // Mobil cihaz kontrolü
+                this.detectMobile();
+                
+                // LocalStorage'dan verileri yükle
+                this.loadFromLocalStorage();
+                
+                // Otomatik giriş yap (demo amaçlı)
+                this.autoLoginDemo();
+                
+                // UI listener'ları başlat
+                this.ui.initListeners();
+                this.game.renderPlant();
+                
+                // Ayarları yükle
+                this.settings.loadSettings();
+                
+                // QR geçmişini yükle
+                this.loadQRHistory();
+                
+                // Mobil uyumluluk için ek ayarlar
+                this.setupMobileCompatibility();
+                
+                // Takvim verilerini yükle
+                this.calendar.loadCalendar();
+                
+                // Rapor verilerini yükle
+                this.reports.loadReports();
+            },
+            
+            // Mobil cihaz kontrolü
+            detectMobile: function() {
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                if (isMobile) {
+                    document.body.classList.add('is-mobile');
+                    console.log("Mobil cihaz tespit edildi");
+                }
+            },
+            
+            // Mobil uyumluluk ayarları
+            setupMobileCompatibility: function() {
+                // iOS için 300ms gecikmeyi önle
+                if ('ontouchstart' in window) {
+                    document.addEventListener('touchstart', function() {}, {passive: true});
+                }
+                
+                // Viewport height ayarı (mobil cihazlar için)
+                this.setViewportHeight();
+                window.addEventListener('resize', this.setViewportHeight.bind(this));
+                window.addEventListener('orientationchange', this.setViewportHeight.bind(this));
+            },
+            
+            // Viewport height ayarı
+            setViewportHeight: function() {
+                let vh = window.innerHeight * 0.01;
+                document.documentElement.style.setProperty('--vh', `${vh}px`);
+                
+                // Mobil container'ı yeniden boyutlandır
+                const container = document.getElementById('mobile-container');
+                if (container && window.innerHeight < 896) {
+                    container.style.height = '100vh';
+                    container.style.maxHeight = '100vh';
+                }
+            },
+
+            // LocalStorage'dan verileri yükle
+            loadFromLocalStorage: function() {
+                try {
+                    // Ebeveyn hesapları
+                    const parents = JSON.parse(localStorage.getItem('fido_parents') || '[]');
+                    this.state.parents = parents;
+                    
+                    // Çocuk hesapları
+                    const children = JSON.parse(localStorage.getItem('fido_children') || '[]');
+                    this.state.children = children;
+                    
+                    // Mevcut oturum
+                    const session = JSON.parse(localStorage.getItem('fido_session') || '{}');
+                    if (session.userId && session.role) {
+                        this.state.user = { id: session.userId };
+                        this.state.userRole = session.role;
+                        
+                        if (session.role === 'parent') {
+                            const parent = parents.find(p => p.id === session.userId);
+                            if (parent) {
+                                this.state.userData = parent;
+                                this.parentPanel.loadChildren();
+                                this.router.navigate('parent-dashboard');
+                                return;
+                            }
+                        } else if (session.role === 'child') {
+                            const child = children.find(c => c.id === session.userId);
+                            if (child) {
+                                this.state.userData = child;
+                                this.state.stars = child.stars || 0;
+                                this.state.water = child.water || 10;
+                                this.state.level = child.level || 1;
+                                this.state.inventory = child.inventory || ['seed_basic'];
+                                this.state.equippedPlant = child.equippedPlant || 'seed_basic';
+                                this.state.profileEmoji = child.profileEmoji || '👦';
+                                
+                                this.ui.updateHeader();
+                                this.store.renderCollection();
+                                this.game.renderPlant();
+                                this.router.navigate('garden');
+                                return;
+                            }
+                        }
+                    }
+                    
+                    // Giriş yapılmamışsa welcome ekranına git
+                    this.router.navigate('welcome');
+                    
+                } catch (error) {
+                    console.error("LocalStorage yükleme hatası:", error);
+                    this.router.navigate('welcome');
+                }
+            },
+
+            // QR geçmişini yükle
+            loadQRHistory: function() {
+                try {
+                    const qrHistory = JSON.parse(localStorage.getItem('fido_qr_history') || '[]');
+                    this.state.qrHistory = qrHistory;
+                } catch (error) {
+                    console.error("QR geçmişi yükleme hatası:", error);
+                    this.state.qrHistory = [];
+                }
+            },
+
+            // Demo için otomatik giriş (ilk çalıştırmada)
+            autoLoginDemo: function() {
+                // İlk çalıştırmada demo verileri oluştur
+                if (!localStorage.getItem('fido_demo_created')) {
+                    this.createDemoData();
+                    localStorage.setItem('fido_demo_created', 'true');
+                }
+            },
+
+            // Demo verileri oluştur
+            createDemoData: function() {
+                const demoParents = [
+                    {
+                        id: 'parent1',
+                        email: 'ebeveyn@ornek.com',
+                        password: '123456',
+                        firstName: 'Ahmet',
+                        lastName: 'Yılmaz',
+                        displayName: 'Ahmet Yılmaz',
+                        address: 'Örnek Mah. Demo Sok. No:1 İstanbul',
+                        role: 'parent',
+                        childrenIds: ['child1', 'child2'],
+                        createdAt: new Date().toISOString()
+                    }
+                ];
+                
+                const demoChildren = [
+                    {
+                        id: 'child1',
+                        parentId: 'parent1',
+                        username: 'cocuk',
+                        password: '123456',
+                        displayName: 'Çocuk Kullanıcı',
+                        profileEmoji: '👦',
+                        stars: 150,
+                        water: 25,
+                        level: 3,
+                        inventory: ['seed_basic', 'flower_daisy', 'flower_tulip'],
+                        equippedPlant: 'flower_tulip',
+                        createdAt: new Date().toISOString()
+                    },
+                    {
+                        id: 'child2',
+                        parentId: 'parent1',
+                        username: 'ahmet',
+                        password: '123',
+                        displayName: 'Ahmet',
+                        profileEmoji: '🧒',
+                        stars: 230,
+                        water: 40,
+                        level: 5,
+                        inventory: ['seed_basic', 'flower_daisy', 'flower_rose', 'tree_pine'],
+                        equippedPlant: 'flower_rose',
+                        createdAt: new Date().toISOString()
+                    }
+                ];
+                
+                localStorage.setItem('fido_parents', JSON.stringify(demoParents));
+                localStorage.setItem('fido_children', JSON.stringify(demoChildren));
+                console.log("Demo verileri oluşturuldu!");
+            },
+
+            // Session'ı kaydet
+            saveSession: function(userId, role) {
+                const session = { userId, role };
+                localStorage.setItem('fido_session', JSON.stringify(session));
+                this.state.user = { id: userId };
+                this.state.userRole = role;
+            },
+
+            // Verileri kaydet
+            saveData: function(data) {
+                if (!this.state.user || this.state.userRole !== 'child') return;
+                
+                try {
+                    // Çocuk verilerini güncelle
+                    const children = JSON.parse(localStorage.getItem('fido_children') || '[]');
+                    const childIndex = children.findIndex(c => c.id === this.state.user.id);
+                    
+                    if (childIndex !== -1) {
+                        children[childIndex] = { ...children[childIndex], ...data };
+                        localStorage.setItem('fido_children', JSON.stringify(children));
+                        
+                        // Local state'i güncelle
+                        Object.keys(data).forEach(key => {
+                            if (this.state.hasOwnProperty(key)) {
+                                this.state[key] = data[key];
+                            }
+                        });
+                        
+                        this.ui.updateHeader();
+                    }
+                } catch (error) {
+                    console.error("Veri kaydetme hatası:", error);
+                }
+            },
+
+            // QR geçmişini kaydet
+            saveQRHistory: function(qrData) {
+                try {
+                    this.state.qrHistory.unshift(qrData);
+                    // Sadece son 10 kaydı tut
+                    if (this.state.qrHistory.length > 10) {
+                        this.state.qrHistory = this.state.qrHistory.slice(0, 10);
+                    }
+                    localStorage.setItem('fido_qr_history', JSON.stringify(this.state.qrHistory));
+                } catch (error) {
+                    console.error("QR geçmişi kaydetme hatası:", error);
+                }
+            },
+
+            // --- AUTH SİSTEMİ ---
+            auth: {
+                // Ebeveyn kaydı
+                registerParent: function() {
+                    const firstName = document.getElementById('parent-firstname').value;
+                    const lastName = document.getElementById('parent-lastname').value;
+                    const email = document.getElementById('parent-email').value;
+                    const password = document.getElementById('parent-password').value;
+                    const address = document.getElementById('parent-address').value;
+                    
+                    if (!firstName || !lastName || !email || !password) {
+                        app.ui.showModal('Eksik Bilgi', 'Lütfen zorunlu alanları doldurun.', '⚠️');
+                        return;
+                    }
+                    
+                    if (password.length < 6) {
+                        app.ui.showModal('Geçersiz Şifre', 'Şifre en az 6 karakter olmalıdır.', '🔒');
+                        return;
+                    }
+                    
+                    // Ebeveyn hesaplarını al
+                    const parents = JSON.parse(localStorage.getItem('fido_parents') || '[]');
+                    
+                    // E-posta kontrolü
+                    if (parents.some(p => p.email === email)) {
+                        app.ui.showModal('Hata', 'Bu e-posta adresi zaten kayıtlı.', '❌');
+                        return;
+                    }
+                    
+                    // Yeni ebeveyn oluştur
+                    const newParent = {
+                        id: 'parent_' + Date.now(),
+                        email: email,
+                        password: password,
+                        firstName: firstName,
+                        lastName: lastName,
+                        displayName: `${firstName} ${lastName}`,
+                        address: address || '',
+                        role: 'parent',
+                        childrenIds: [],
+                        createdAt: new Date().toISOString()
+                    };
+                    
+                    parents.push(newParent);
+                    localStorage.setItem('fido_parents', JSON.stringify(parents));
+                    
+                    // Oturum aç
+                    app.saveSession(newParent.id, 'parent');
+                    app.state.userData = newParent;
+                    
+                    app.ui.showModal('Kayıt Başarılı!', 'Ebeveyn hesabınız oluşturuldu. Şimdi çocuk hesabı ekleyebilirsiniz.', '🎉');
+                    app.router.navigate('parent-dashboard');
+                },
+
+                // Ebeveyn girişi
+                loginParent: function() {
+                    const email = document.getElementById('parent-login-email').value;
+                    const password = document.getElementById('parent-login-password').value;
+                    
+                    if (!email || !password) {
+                        app.ui.showModal('Eksik Bilgi', 'Lütfen e-posta ve şifrenizi girin.', '⚠️');
+                        return;
+                    }
+                    
+                    // Demo hesaplar
+                    if (email === 'ebeveyn@ornek.com' && password === '123456') {
+                        const parents = JSON.parse(localStorage.getItem('fido_parents') || '[]');
+                        const parent = parents.find(p => p.email === email);
+                        
+                        if (parent) {
+                            app.saveSession(parent.id, 'parent');
+                            app.state.userData = parent;
+                            app.parentPanel.loadChildren();
+                            app.router.navigate('parent-dashboard');
+                            return;
+                        }
+                    }
+                    
+                    // Normal giriş
+                    const parents = JSON.parse(localStorage.getItem('fido_parents') || '[]');
+                    const parent = parents.find(p => p.email === email && p.password === password);
+                    
+                    if (parent) {
+                        app.saveSession(parent.id, 'parent');
+                        app.state.userData = parent;
+                        app.parentPanel.loadChildren();
+                        app.router.navigate('parent-dashboard');
+                    } else {
+                        app.ui.showModal('Giriş Hatası', 'E-posta veya şifre hatalı.', '❌');
+                    }
+                },
+
+                // Çocuk girişi
+                loginChild: function() {
+                    const username = document.getElementById('child-username').value;
+                    const password = document.getElementById('child-password').value;
+                    
+                    if (!username || !password) {
+                        app.ui.showModal('Eksik Bilgi', 'Lütfen kullanıcı adı ve şifrenizi girin.', '⚠️');
+                        return;
+                    }
+                    
+                    // Demo hesaplar
+                    const demoAccounts = [
+                        { username: 'cocuk', password: '123456' },
+                        { username: 'ahmet', password: '123' }
+                    ];
+                    
+                    if (demoAccounts.some(acc => acc.username === username && acc.password === password)) {
+                        const children = JSON.parse(localStorage.getItem('fido_children') || '[]');
+                        const child = children.find(c => c.username === username);
+                        
+                        if (child) {
+                            app.saveSession(child.id, 'child');
+                            app.state.userData = child;
+                            app.state.stars = child.stars || 0;
+                            app.state.water = child.water || 10;
+                            app.state.level = child.level || 1;
+                            app.state.inventory = child.inventory || ['seed_basic'];
+                            app.state.equippedPlant = child.equippedPlant || 'seed_basic';
+                            app.state.profileEmoji = child.profileEmoji || '👦';
+                            
+                            // Profil bilgilerini güncelle
+                            document.getElementById('profile-emoji').textContent = child.profileEmoji || '👦';
+                            document.getElementById('user-name').textContent = child.displayName || username;
+                            
+                            app.ui.updateHeader();
+                            app.store.renderCollection();
+                            app.game.renderPlant();
+                            app.router.navigate('garden');
+                            return;
+                        }
+                    }
+                    
+                    // Normal giriş
+                    const children = JSON.parse(localStorage.getItem('fido_children') || '[]');
+                    const child = children.find(c => c.username === username && c.password === password);
+                    
+                    if (child) {
+                        app.saveSession(child.id, 'child');
+                        app.state.userData = child;
+                        app.state.stars = child.stars || 0;
+                        app.state.water = child.water || 10;
+                        app.state.level = child.level || 1;
+                        app.state.inventory = child.inventory || ['seed_basic'];
+                        app.state.equippedPlant = child.equippedPlant || 'seed_basic';
+                        app.state.profileEmoji = child.profileEmoji || '👦';
+                        
+                        // Profil bilgilerini güncelle
+                        document.getElementById('profile-emoji').textContent = child.profileEmoji || '👦';
+                        document.getElementById('user-name').textContent = child.displayName || username;
+                        
+                        app.ui.updateHeader();
+                        app.store.renderCollection();
+                        app.game.renderPlant();
+                        app.router.navigate('garden');
+                    } else {
+                        app.ui.showModal('Giriş Hatası', 'Kullanıcı adı veya şifre hatalı.', '❌');
+                    }
+                },
+
+                // Çıkış yap
+                logout: function() {
+                    localStorage.removeItem('fido_session');
+                    app.state.user = null;
+                    app.state.userRole = null;
+                    app.state.userData = null;
+                    app.ui.showModal('Çıkış Yapıldı', 'Güle güle, tekrar bekleriz!', '👋');
+                    app.router.navigate('welcome');
+                }
+            },
+
+            // --- AYARLAR SİSTEMİ ---
+            settings: {
+                // Ayarları yükle
+                loadSettings: function() {
+                    try {
+                        const savedSettings = JSON.parse(localStorage.getItem('fido_settings') || '{}');
+                        app.state.settings = { ...app.state.settings, ...savedSettings };
+                        
+                        // UI'ı güncelle
+                        if (document.getElementById('language-select')) {
+                            document.getElementById('language-select').value = app.state.settings.language;
+                        }
+                        if (document.getElementById('theme-toggle')) {
+                            document.getElementById('theme-toggle').checked = app.state.settings.theme === 'dark';
+                        }
+                        if (document.getElementById('sound-toggle')) {
+                            document.getElementById('sound-toggle').checked = app.state.settings.soundEnabled;
+                        }
+                        if (document.getElementById('notification-toggle')) {
+                            document.getElementById('notification-toggle').checked = app.state.settings.notificationsEnabled;
+                        }
+                        if (document.getElementById('difficulty-select')) {
+                            document.getElementById('difficulty-select').value = app.state.settings.difficulty;
+                        }
+                        if (document.getElementById('default-plant-duration')) {
+                            document.getElementById('default-plant-duration').value = app.state.settings.defaultPlantDuration;
+                            document.getElementById('duration-value').textContent = `${app.state.settings.defaultPlantDuration} dk`;
+                        }
+                        if (document.getElementById('cross-device-setting')) {
+                            document.getElementById('cross-device-setting').checked = app.state.settings.crossDeviceLock;
+                        }
+                        
+                    } catch (error) {
+                        console.error("Ayarlar yükleme hatası:", error);
+                    }
+                },
+                
+                // Ayarları kaydet
+                saveSettings: function() {
+                    try {
+                        // UI'dan değerleri al
+                        app.state.settings.language = document.getElementById('language-select').value;
+                        app.state.settings.theme = document.getElementById('theme-toggle').checked ? 'dark' : 'light';
+                        app.state.settings.soundEnabled = document.getElementById('sound-toggle').checked;
+                        app.state.settings.notificationsEnabled = document.getElementById('notification-toggle').checked;
+                        app.state.settings.difficulty = document.getElementById('difficulty-select').value;
+                        app.state.settings.defaultPlantDuration = parseInt(document.getElementById('default-plant-duration').value);
+                        app.state.settings.crossDeviceLock = document.getElementById('cross-device-setting').checked;
+                        
+                        // LocalStorage'a kaydet
+                        localStorage.setItem('fido_settings', JSON.stringify(app.state.settings));
+                        
+                        // Global state'i güncelle
+                        app.state.crossDeviceLock = app.state.settings.crossDeviceLock;
+                        
+                        app.ui.showModal('Ayarlar Kaydedildi!', 'Ayarlarınız başarıyla kaydedildi.', '✅');
+                        
+                        // Temayı uygula
+                        if (app.state.settings.theme === 'dark') {
+                            document.body.style.backgroundColor = '#1a202c';
+                            document.getElementById('mobile-container').style.backgroundColor = '#2d3748';
+                        } else {
+                            document.body.style.backgroundColor = '';
+                            document.getElementById('mobile-container').style.backgroundColor = '#ffffff';
+                        }
+                        
+                    } catch (error) {
+                        console.error("Ayarlar kaydetme hatası:", error);
+                        app.ui.showModal('Hata', 'Ayarlar kaydedilirken bir hata oluştu.', '❌');
+                    }
+                },
+                
+                // Profil düzenle
+                editProfile: function() {
+                    app.ui.showModal('Profil Düzenleme', 'Profil düzenleme özelliği yakında eklenecek! 👤', '🔄');
+                },
+                
+                // Gizlilik politikası göster
+                showPrivacyPolicy: function() {
+                    app.ui.showModal('Gizlilik Politikası', 'Fido olarak kişisel verilerinizi korumaya büyük önem veriyoruz. Verileriniz sadece uygulamanın işlevselliğini sağlamak için kullanılır ve üçüncü taraflarla paylaşılmaz. Detaylı bilgi için lütfen web sitemizi ziyaret edin.', '🔒');
+                },
+                
+                // Kullanım koşulları göster
+                showTerms: function() {
+                    app.ui.showModal('Kullanım Koşulları', '1. Fido uygulamasını kullanarak bu koşulları kabul etmiş olursunuz.\n2. Uygulama 13 yaş altı çocuklar için tasarlanmıştır.\n3. Ebeveyn kontrolü gereklidir.\n4. Uygulama içi satın alımlar ebeveyn onayı gerektirir.', '📜');
+                },
+                
+                // Verileri dışa aktar
+                exportData: function() {
+                    try {
+                        const userData = {
+                            user: app.state.userData,
+                            stars: app.state.stars,
+                            water: app.state.water,
+                            level: app.state.level,
+                            inventory: app.state.inventory,
+                            equippedPlant: app.state.equippedPlant,
+                            settings: app.state.settings
+                        };
+                        
+                        const dataStr = JSON.stringify(userData, null, 2);
+                        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                        
+                        // Geçici bir link oluştur ve tıkla
+                        const exportFileDefaultName = `fido_backup_${new Date().toISOString().slice(0,10)}.json`;
+                        const linkElement = document.createElement('a');
+                        linkElement.setAttribute('href', dataUri);
+                        linkElement.setAttribute('download', exportFileDefaultName);
+                        linkElement.click();
+                        
+                        app.ui.showModal('Veriler Dışa Aktarıldı', 'Oyun verileriniz başarıyla indirildi. 📥', '✅');
+                    } catch (error) {
+                        console.error("Veri dışa aktarma hatası:", error);
+                        app.ui.showModal('Hata', 'Veriler dışa aktarılırken bir hata oluştu.', '❌');
+                    }
+                },
+                
+                // İlerlemeyi sıfırla
+                resetProgress: function() {
+                    if (confirm("Tüm ilerlemenizi sıfırlamak istediğinize emin misiniz? Bu işlem geri alınamaz! 😢")) {
+                        if (app.state.userRole === 'child') {
+                            // Çocuk verilerini sıfırla
+                            const children = JSON.parse(localStorage.getItem('fido_children') || '[]');
+                            const childIndex = children.findIndex(c => c.id === app.state.user.id);
+                            
+                            if (childIndex !== -1) {
+                                children[childIndex].stars = 0;
+                                children[childIndex].water = 10;
+                                children[childIndex].level = 1;
+                                children[childIndex].inventory = ['seed_basic'];
+                                children[childIndex].equippedPlant = 'seed_basic';
+                                
+                                localStorage.setItem('fido_children', JSON.stringify(children));
+                                
+                                // Local state'i güncelle
+                                app.state.stars = 0;
+                                app.state.water = 10;
+                                app.state.level = 1;
+                                app.state.inventory = ['seed_basic'];
+                                app.state.equippedPlant = 'seed_basic';
+                                
+                                app.ui.updateHeader();
+                                app.store.renderCollection();
+                                app.game.renderPlant();
+                                
+                                app.ui.showModal('İlerleme Sıfırlandı', 'Tüm verileriniz sıfırlandı. Yeniden başlayabilirsiniz! 🔄', '🔄');
+                            }
+                        }
+                    }
+                },
+                
+                // Destek iletişimi
+                contactSupport: function() {
+                    app.ui.showModal('Destek İletişimi', 'Sorularınız ve geri bildirimleriniz için bize şu adresten ulaşabilirsiniz: support@fidoapp.com 📧', '📞');
+                },
+                
+                // Uygulamayı değerlendir
+                rateApp: function() {
+                    app.ui.showModal('Değerlendirme', 'Fido uygulamasını değerlendirmek için yakında mağaza linkimiz aktif olacak! ⭐', '🌟');
+                },
+                
+                // Uygulamayı paylaş
+                shareApp: function() {
+                    app.ui.showModal('Paylaş', 'Fido\'yu arkadaşlarınla paylaşarak daha çok çocuğun ekran bağımlılığından kurtulmasına yardımcı ol! 🌱', '📲');
+                }
+            },
+
+            // --- OYUN MANTIĞI ---
+            game: {
+                startSession: function() {
+                    if (app.state.sessionActive) {
+                        app.ui.showModal('Zaten Aktif', 'Bir oturum zaten başlatıldı!', '⏱️');
+                        return;
+                    }
+                    
+                    const minutes = parseInt(document.getElementById('duration-slider').value);
+                    const seconds = minutes * 60;
+                    
+                    // Çapraz cihaz kilidini kontrol et
+                    if (app.state.crossDeviceLock) {
+                        app.crossDevice.lockAllDevices();
+                    }
+                    
+                    app.state.sessionActive = true;
+                    
+                    // UI güncelle
+                    document.getElementById('btn-start').classList.add('hidden');
+                    document.getElementById('btn-giveup').classList.remove('hidden');
+                    document.getElementById('setup-controls').classList.add('opacity-50', 'pointer-events-none');
+                    document.getElementById('status-text').textContent = "Büyüyor... Ekrandan uzak dur!";
+                    document.getElementById('mascot-bubble').textContent = "Şşşt! Odaklanıyoruz. 🌱";
+                    
+                    // Maskotu göster
+                    document.getElementById('mascot-character').classList.remove('hidden');
+                    
+                    // Çapraz cihaz durumunu göster
+                    if (app.state.crossDeviceLock) {
+                        document.getElementById('cross-device-status').classList.remove('hidden');
+                    }
+                    
+                    // Bitkiyi "Tohum" haline getir
+                    app.state.currentPlantStage = 1;
+                    this.renderPlant();
+                    
+                    // Görünürlük takibi
+                    document.addEventListener('visibilitychange', this.handleVisibility);
+                    
+                    // Timer başlat
+                    let remaining = seconds;
+                    app.state.timer = setInterval(() => {
+                        remaining--;
+                        const m = Math.floor(remaining / 60).toString().padStart(2, '0');
+                        const s = (remaining % 60).toString().padStart(2, '0');
+                        document.getElementById('timer-display').textContent = `${m}:${s}`;
+                        
+                        // Kademeli büyüme
+                        if (remaining === Math.floor(seconds / 3) * 2) {
+                            app.state.currentPlantStage = 2;
+                            this.renderPlant();
+                        } else if (remaining === Math.floor(seconds / 3)) {
+                            app.state.currentPlantStage = 3;
+                            this.renderPlant();
+                        }
+                        
+                        if (remaining <= 0) {
+                            this.endSession(true, minutes);
+                        }
+                    }, 1000);
+                },
+
+                endSession: function(success, minutes) {
+                    clearInterval(app.state.timer);
+                    app.state.sessionActive = false;
+                    document.removeEventListener('visibilitychange', this.handleVisibility);
+                    
+                    // Çapraz cihaz kilidini kaldır
+                    if (app.state.crossDeviceLock) {
+                        app.crossDevice.unlockAllDevices();
+                        document.getElementById('cross-device-status').classList.add('hidden');
+                    }
+                    
+                    // UI reset
+                    document.getElementById('btn-start').classList.remove('hidden');
+                    document.getElementById('btn-giveup').classList.add('hidden');
+                    document.getElementById('setup-controls').classList.remove('opacity-50', 'pointer-events-none');
+                    document.getElementById('timer-display').textContent = "00:00";
+                    
+                    // Maskotu gizle
+                    document.getElementById('mascot-character').classList.add('hidden');
+                    
+                    if (success) {
+                        // Başarı!
+                        app.state.currentPlantStage = 4;
+                        this.renderPlant();
+                        
+                        // Konfeti efekti
+                        if (typeof confetti === 'function') {
+                            confetti({
+                                particleCount: 150,
+                                spread: 70,
+                                origin: { y: 0.6 }
+                            });
+                        }
+                        
+                        // Ödül hesapla
+                        const starsEarned = minutes * 5;
+                        const waterEarned = Math.floor(minutes / 10) + 1;
+                        
+                        app.state.stars += starsEarned;
+                        app.state.water += waterEarned;
+                        
+                        app.saveData({ 
+                            stars: app.state.stars, 
+                            water: app.state.water 
+                        });
+                        
+                        app.ui.showModal('Harika İş!', `Bitkin büyüdü! ${starsEarned} Yıldız ve ${waterEarned} Su kazandın. 🌟`, '🏆');
+                        document.getElementById('mascot-bubble').textContent = "Başardık! 🎉";
+                        document.getElementById('status-text').textContent = "Tebrikler! Bir sonraki seans?";
+                    } else {
+                        // Başarısızlık
+                        document.getElementById('plant-container').classList.add('plant-die-effect');
+                        app.state.currentPlantStage = 0;
+                        document.getElementById('mascot-bubble').textContent = "Ah, hayır... 😢";
+                        document.getElementById('status-text').textContent = "Bitkin soldu. Tekrar dene!";
+                        app.ui.showModal('Bitki Soldu', 'Ekranı açtın veya vazgeçtin. Bitkin maalesef kurudu. 💔', '🥀');
+                        
+                        setTimeout(() => {
+                            document.getElementById('plant-container').classList.remove('plant-die-effect');
+                            this.renderPlant();
+                        }, 3000);
+                    }
+                },
+
+                giveUp: function() {
+                    if (confirm("Vazgeçersen bitkin solacak. Emin misin? 😢")) {
+                        this.endSession(false, 0);
+                    }
+                },
+
+                handleVisibility: function() {
+                    if (document.hidden && app.state.sessionActive) {
+                        // Kural ihlali - ekran kapatıldı, bu normal
+                        // Burada ihlal takibi yapabiliriz
+                    } else if (!document.hidden && app.state.sessionActive) {
+                        // Ekran açıldı - ihlal!
+                        app.ui.showModal('İhlal Tespit Edildi!', 'Lütfen ekranı kapat! Soluyorum, kuruyorum! 🌱😢', '⚠️');
+                        document.getElementById('mascot-bubble').textContent = "Lütfen ekranı kapat!";
+                        document.getElementById('mascot-character').classList.add('wiggle-animation');
+                        
+                        // 5 saniye içinde kapatmazsa bitki solar
+                        setTimeout(() => {
+                            if (app.state.sessionActive && !document.hidden) {
+                                app.game.endSession(false, 0);
+                            }
+                        }, 5000);
+                    }
+                },
+
+                renderPlant: function() {
+                    const container = document.getElementById('dynamic-plant');
+                    const stage = app.state.currentPlantStage;
+                    const plantData = app.plantsDB[app.state.equippedPlant];
+                    const color = plantData ? plantData.color : '#10B981';
+                    const emoji = plantData ? plantData.emoji : '🌱';
+                    
+                    let svgContent = '';
+                    
+                    if (stage === 0) {
+                        // Tohum/Ölü
+                        svgContent = `
+                            <circle cx="80" cy="95" r="8" fill="#5D4037" />
+                            <circle cx="80" cy="92" r="4" fill="#8D6E63" />
+                        `;
+                    } else if (stage === 1) {
+                        // Filiz
+                        svgContent = `
+                            <path d="M80,100 Q80,85 80,75" stroke="${color}" stroke-width="5" fill="none" stroke-linecap="round" />
+                            <path d="M80,75 Q70,70 65,80" stroke="${color}" stroke-width="4" fill="none" stroke-linecap="round" />
+                            <circle cx="80" cy="75" r="3" fill="${color}" />
+                        `;
+                    } else if (stage === 2) {
+                        // Fidan
+                        svgContent = `
+                            <path d="M80,100 Q80,70 80,60" stroke="${color}" stroke-width="6" fill="none" stroke-linecap="round" />
+                            <path d="M80,75 Q65,70 60,85" stroke="${color}" stroke-width="4" fill="none" stroke-linecap="round" />
+                            <path d="M80,65 Q95,60 100,75" stroke="${color}" stroke-width="4" fill="none" stroke-linecap="round" />
+                            <circle cx="80" cy="60" r="4" fill="${color}" />
+                        `;
+                    } else if (stage === 3) {
+                        // Genç bitki
+                        svgContent = `
+                            <path d="M80,100 Q80,55 80,45" stroke="${color}" stroke-width="7" fill="none" stroke-linecap="round" />
+                            <path d="M80,70 Q60,60 55,80" stroke="${color}" stroke-width="5" fill="none" stroke-linecap="round" />
+                            <path d="M80,60 Q105,50 110,70" stroke="${color}" stroke-width="5" fill="none" stroke-linecap="round" />
+                            <path d="M80,50 Q70,35 65,45" stroke="${color}" stroke-width="4" fill="none" stroke-linecap="round" />
+                            <circle cx="80" cy="45" r="5" fill="${color}" />
+                        `;
+                    } else if (stage === 4) {
+                        // Tam çiçek
+                        svgContent = `
+                            <path d="M80,100 Q80,40 80,30" stroke="${color}" stroke-width="8" fill="none" stroke-linecap="round" />
+                            <path d="M80,65 Q55,50 50,75" stroke="${color}" stroke-width="6" fill="none" stroke-linecap="round" />
+                            <path d="M80,55 Q110,40 115,65" stroke="${color}" stroke-width="6" fill="none" stroke-linecap="round" />
+                            <path d="M80,45 Q65,25 60,40" stroke="${color}" stroke-width="5" fill="none" stroke-linecap="round" />
+                            <path d="M80,35 Q95,20 100,35" stroke="${color}" stroke-width="5" fill="none" stroke-linecap="round" />
+                            <text x="80" y="30" font-size="25" text-anchor="middle" dominant-baseline="middle">${emoji}</text>
+                        `;
+                    }
+                    
+                    container.innerHTML = `<svg viewBox="0 0 160 100" width="100%" height="100%">${svgContent}</svg>`;
+                    
+                    // Animasyon
+                    container.classList.remove('plant-grow-effect');
+                    void container.offsetWidth;
+                    if (stage > 0) container.classList.add('plant-grow-effect');
+                },
+
+                requestDurationChange: function() {
+                    const requestedMinutes = parseInt(document.getElementById('duration-slider').value);
+                    const defaultMinutes = parseInt(document.getElementById('default-minutes').textContent);
+                    
+                    if (requestedMinutes === defaultMinutes) {
+                        app.ui.showModal('Değişiklik Yok', 'Zaten varsayılan süreyi seçtiniz.', 'ℹ️');
+                        return;
+                    }
+                    
+                    // İstek bölümünü göster
+                    document.getElementById('duration-request-section').classList.remove('hidden');
+                    document.getElementById('requested-time').textContent = `${requestedMinutes} dakika`;
+                    
+                    app.ui.showModal('İstek Gönderildi!', `${requestedMinutes} dakika için ebeveyn onayı istendi. 📬`, '⏱️');
+                },
+
+                cancelRequest: function() {
+                    document.getElementById('duration-request-section').classList.add('hidden');
+                    app.ui.showModal('İstek İptal Edildi', 'Süre değişiklik isteğin iptal edildi.', '✅');
+                },
+
+                checkRequestStatus: function() {
+                    // Demo: Her zaman onaylandı göster
+                    document.getElementById('duration-request-section').classList.add('hidden');
+                    app.ui.showModal('İstek Onaylandı!', 'Ebeveynin süre değişikliğini onayladı! 🎉', '✅');
+                },
+
+                quickStart: function() {
+                    // Varsayılan süreyle hızlı başlat
+                    const defaultMinutes = parseInt(document.getElementById('default-minutes').textContent);
+                    document.getElementById('duration-slider').value = defaultMinutes;
+                    document.getElementById('slider-value').textContent = `${defaultMinutes} dk`;
+                    this.startSession();
+                }
+            },
+
+            // --- MAĞAZA & KOLEKSİYON ---
+            store: {
+                showTab: function(tabName) {
+                    // Sekme butonlarını güncelle
+                    document.querySelectorAll('.tab-btn').forEach(btn => {
+                        btn.classList.remove('border-green-500', 'text-gray-700');
+                        btn.classList.add('text-gray-500');
+                    });
+                    
+                    // İçerikleri gizle/göster
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.add('hidden');
+                    });
+                    
+                    if (tabName === 'virtual') {
+                        document.getElementById('tab-virtual').classList.add('border-green-500', 'text-gray-700');
+                        document.getElementById('virtual-collection').classList.remove('hidden');
+                    } else {
+                        document.getElementById('tab-real').classList.add('border-green-500', 'text-gray-700');
+                        document.getElementById('real-seeds').classList.remove('hidden');
+                    }
+                },
+
+                spinWheel: function() {
+                    // Haftalık limit kontrolü
+                    const today = new Date().toDateString();
+                    if (app.state.lastSpinDate === today && app.state.wheelSpinsUsed >= 1) {
+                        app.ui.showModal('Limit Doldu', 'Haftalık çark hakkın doldu! Gelecek hafta tekrar dene. 📅', '⏳');
+                        return;
+                    }
+                    
+                    if (app.state.water < 5) {
+                        app.ui.showModal('Yetersiz Su', 'Çevirmek için 5 Su Damlasına ihtiyacın var. 💧', '💧');
+                        return;
+                    }
+                    
+                    // Ücreti düş
+                    app.state.water -= 5;
+                    app.saveData({ water: app.state.water });
+                    
+                    // Çarkı döndür
+                    const wheel = document.getElementById('wheel-svg');
+                    const deg = 1440 + Math.floor(Math.random() * 1440);
+                    wheel.style.transform = `rotate(${deg}deg)`;
+                    
+                    // Haftalık limiti güncelle
+                    if (app.state.lastSpinDate !== today) {
+                        app.state.wheelSpinsUsed = 0;
+                        app.state.lastSpinDate = today;
+                    }
+                    app.state.wheelSpinsUsed++;
+                    document.getElementById('wheel-spins-left').textContent = 1 - app.state.wheelSpinsUsed;
+                    
+                    setTimeout(() => {
+                        // Sonuç belirle
+                        const rewards = Object.keys(app.plantsDB);
+                        const randomReward = rewards[Math.floor(Math.random() * rewards.length)];
+                        const rewardData = app.plantsDB[randomReward];
+                        
+                        // Nadirlik kontrolü
+                        let specialMessage = '';
+                        if (rewardData.rarity === 'Efsanevi') {
+                            specialMessage = 'İNANILMAZ! Efsanevi bir bitki kazandın! ✨';
+                            // Ekstra konfeti
+                            if (typeof confetti === 'function') {
+                                confetti({
+                                    particleCount: 300,
+                                    spread: 100,
+                                    origin: { y: 0.6 }
+                                });
+                            }
+                        } else if (rewardData.rarity === 'Nadir') {
+                            specialMessage = 'Harika! Nadir bir bitki kazandın! 🌟';
+                        }
+                        
+                        // Envantere ekle
+                        if (!app.state.inventory.includes(randomReward)) {
+                            app.state.inventory.push(randomReward);
+                            app.saveData({ inventory: app.state.inventory });
+                            app.ui.showModal('Yeni Tohum!', `${rewardData.name} (${rewardData.emoji}) kazandın! ${specialMessage}`, '🎁');
+                        } else {
+                            // Zaten varsa yıldız ver
+                            app.state.stars += 50;
+                            app.saveData({ stars: app.state.stars });
+                            app.ui.showModal('Zaten Vardı', `Bu tohum sende var. Yerine 50 Yıldız kazandın! ⭐`, '⭐');
+                        }
+                        
+                        this.renderCollection();
+                        wheel.style.transform = `rotate(0deg)`;
+                    }, 4000);
+                },
+
+                buyItem: function(itemId, cost) {
+                    if (app.state.stars >= cost) {
+                        app.state.stars -= cost;
+                        app.saveData({ stars: app.state.stars });
+                        app.ui.showModal('Satın Alındı!', 'Ürün başarıyla alındı! Bahçende kullanabilirsin. 🛍️', '✅');
+                    } else {
+                        app.ui.showModal('Yetersiz Bakiye', 'Daha fazla yıldıza ihtiyacın var. Bitki yetiştirerek kazanabilirsin! ✨', '🚫');
+                    }
+                },
+
+                renderCollection: function() {
+                    const grid = document.getElementById('collection-grid');
+                    if (!grid) return;
+                    
+                    grid.innerHTML = '';
+                    
+                    // Koleksiyon
+                    app.state.inventory.forEach(plantId => {
+                        const plant = app.plantsDB[plantId];
+                        const isEquipped = app.state.equippedPlant === plantId;
+                        
+                        const card = document.createElement('div');
+                        card.className = `card-childish p-3 text-center border-2 ${isEquipped ? 'border-green-500 bg-green-50' : 'border-transparent'} cursor-pointer`;
+                        card.innerHTML = `
+                            <div class="text-4xl mb-2">${plant.emoji}</div>
+                            <p class="font-bold text-xs text-gray-700 mb-1">${plant.name}</p>
+                            <p class="text-[10px] px-2 py-1 rounded-full ${plant.rarity === 'Efsanevi' ? 'bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700' : plant.rarity === 'Nadir' ? 'bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-700' : 'bg-gray-100 text-gray-600'}">${plant.rarity}</p>
+                            ${isEquipped ? '<span class="text-[10px] text-green-600 font-bold mt-2 block">✓ Seçili</span>' : ''}
+                        `;
+                        card.onclick = () => this.equipPlant(plantId);
+                        grid.appendChild(card);
+                    });
+                    
+                    // Kilitli olanlar
+                    Object.keys(app.plantsDB).forEach(plantId => {
+                        if (!app.state.inventory.includes(plantId)) {
+                            const plant = app.plantsDB[plantId];
+                            const card = document.createElement('div');
+                            card.className = `bg-gray-100 p-3 rounded-xl text-center opacity-50 grayscale`;
+                            card.innerHTML = `
+                                <div class="text-4xl mb-2">🔒</div>
+                                <p class="font-bold text-xs text-gray-500">???</p>
+                                <p class="text-[10px] text-gray-400 mt-1">Keşfetmeyi bekle!</p>
+                            `;
+                            grid.appendChild(card);
+                        }
+                    });
+                    
+                    document.getElementById('collection-count').textContent = `${app.state.inventory.length}/${Object.keys(app.plantsDB).length}`;
+                },
+
+                equipPlant: function(plantId) {
+                    app.state.equippedPlant = plantId;
+                    app.saveData({ equippedPlant: plantId });
+                    this.renderCollection();
+                    app.game.renderPlant();
+                    app.ui.showModal('Kuşanıldı!', `${app.plantsDB[plantId].name} bahçene ekildi. 🌱`, '✅');
+                }
+            },
+
+            // --- TAKVİM SİSTEMİ ---
+            calendar: {
+                loadCalendar: function() {
+                    // Takvim verilerini localStorage'dan yükle
+                    try {
+                        const calendarData = JSON.parse(localStorage.getItem('fido_calendar') || '{}');
+                        this.calendarData = calendarData;
+                        this.renderCalendar();
+                    } catch (error) {
+                        console.error("Takvim verileri yükleme hatası:", error);
+                        this.calendarData = {};
+                    }
+                },
+                
+                renderCalendar: function() {
+                    const container = document.getElementById('weekly-calendar');
+                    if (!container) return;
+                    
+                    container.innerHTML = '';
+                    
+                    const days = [
+                        { id: 'monday', name: 'Pazartesi', short: 'Pzt' },
+                        { id: 'tuesday', name: 'Salı', short: 'Sal' },
+                        { id: 'wednesday', name: 'Çarşamba', short: 'Çar' },
+                        { id: 'thursday', name: 'Perşembe', short: 'Per' },
+                        { id: 'friday', name: 'Cuma', short: 'Cum' },
+                        { id: 'saturday', name: 'Cumartesi', short: 'Cmt' },
+                        { id: 'sunday', name: 'Pazar', short: 'Paz' }
+                    ];
+                    
+                    days.forEach(day => {
+                        const dayData = this.calendarData[day.id] || { enabled: true, maxMinutes: 60 };
+                        
+                        const dayElement = document.createElement('div');
+                        dayElement.className = 'card-childish p-4';
+                        dayElement.innerHTML = `
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-full flex items-center justify-center mr-3">
+                                        <span class="font-bold text-blue-700">${day.short}</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-gray-800">${day.name}</p>
+                                        <p class="text-xs text-gray-500">Maksimum ekran süresi</p>
+                                    </div>
+                                </div>
+                                <div class="relative">
+                                    <input type="checkbox" id="toggle-${day.id}" class="sr-only" ${dayData.enabled ? 'checked' : ''}>
+                                    <label for="toggle-${day.id}" class="block w-12 h-6 ${dayData.enabled ? 'bg-green-500' : 'bg-gray-300'} rounded-full cursor-pointer">
+                                        <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition ${dayData.enabled ? 'transform translate-x-6' : ''}"></div>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="flex items-center ${!dayData.enabled ? 'opacity-50' : ''}">
+                                <input type="range" id="slider-${day.id}" min="0" max="180" step="15" value="${dayData.maxMinutes}" class="flex-1 h-3 bg-gradient-to-r from-green-200 to-cyan-200 rounded-full appearance-none cursor-pointer" ${!dayData.enabled ? 'disabled' : ''}>
+                                <span class="ml-4 font-bold text-green-600 w-16 text-center" id="value-${day.id}">${dayData.maxMinutes} dk</span>
+                            </div>
+                        `;
+                        
+                        container.appendChild(dayElement);
+                        
+                        // Etkinlik dinleyicileri
+                        const toggle = dayElement.querySelector(`#toggle-${day.id}`);
+                        const slider = dayElement.querySelector(`#slider-${day.id}`);
+                        const valueSpan = dayElement.querySelector(`#value-${day.id}`);
+                        
+                        toggle.addEventListener('change', function() {
+                            const label = this.nextElementSibling;
+                            const isChecked = this.checked;
+                            
+                            if (isChecked) {
+                                label.classList.remove('bg-gray-300');
+                                label.classList.add('bg-green-500');
+                                label.querySelector('.dot').classList.add('transform', 'translate-x-6');
+                                slider.removeAttribute('disabled');
+                                slider.parentElement.classList.remove('opacity-50');
+                            } else {
+                                label.classList.remove('bg-green-500');
+                                label.classList.add('bg-gray-300');
+                                label.querySelector('.dot').classList.remove('transform', 'translate-x-6');
+                                slider.setAttribute('disabled', 'disabled');
+                                slider.parentElement.classList.add('opacity-50');
+                            }
+                            
+                            // Veriyi güncelle
+                            app.calendar.updateDay(day.id, {
+                                enabled: isChecked,
+                                maxMinutes: parseInt(slider.value)
+                            });
+                        });
+                        
+                        slider.addEventListener('input', function() {
+                            valueSpan.textContent = `${this.value} dk`;
+                            
+                            // Veriyi güncelle
+                            app.calendar.updateDay(day.id, {
+                                enabled: toggle.checked,
+                                maxMinutes: parseInt(this.value)
+                            });
+                        });
+                    });
+                },
+                
+                updateDay: function(dayId, data) {
+                    this.calendarData[dayId] = data;
+                    localStorage.setItem('fido_calendar', JSON.stringify(this.calendarData));
+                },
+                
+                saveCalendar: function() {
+                    localStorage.setItem('fido_calendar', JSON.stringify(this.calendarData));
+                    app.ui.showModal('Takvim Kaydedildi!', 'Haftalık program başarıyla kaydedildi. 📅', '✅');
+                    app.router.navigate('parent-dashboard');
+                }
+            },
+
+            // --- RAPORLAR SİSTEMİ ---
+            reports: {
+                loadReports: function() {
+                    // Rapor verilerini localStorage'dan yükle
+                    try {
+                        const reportsData = JSON.parse(localStorage.getItem('fido_reports') || '{}');
+                        this.reportsData = reportsData;
+                        this.renderReports();
+                    } catch (error) {
+                        console.error("Rapor verileri yükleme hatası:", error);
+                        this.reportsData = {
+                            weeklySummary: {
+                                totalFocusTime: "3 saat 45 dakika",
+                                violationCount: 2,
+                                starsEarned: 125
+                            },
+                            dailyProgress: [
+                                { day: "Pzt", minutes: 45 },
+                                { day: "Sal", minutes: 60 },
+                                { day: "Çar", minutes: 30 },
+                                { day: "Per", minutes: 75 },
+                                { day: "Cum", minutes: 90 },
+                                { day: "Cmt", minutes: 120 },
+                                { day: "Paz", minutes: 60 }
+                            ],
+                            violations: [
+                                { date: "10 Mayıs 2024", time: "14:30", duration: "5 dakika", reason: "Ekran açıldı" },
+                                { date: "8 Mayıs 2024", time: "10:15", duration: "8 dakika", reason: "Uygulama değiştirildi" }
+                            ]
+                        };
+                    }
+                },
+                
+                renderReports: function() {
+                    // Haftalık özet
+                    const weeklySummary = this.reportsData.weeklySummary;
+                    
+                    // Günlük ilerleme
+                    const dailyProgressContainer = document.getElementById('daily-progress');
+                    if (dailyProgressContainer) {
+                        dailyProgressContainer.innerHTML = '';
+                        
+                        this.reportsData.dailyProgress.forEach(day => {
+                            const percentage = (day.minutes / 180) * 100;
+                            const dayElement = document.createElement('div');
+                            dayElement.className = 'mb-3';
+                            dayElement.innerHTML = `
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="font-bold text-gray-700">${day.day}</span>
+                                    <span class="text-gray-600">${day.minutes} dk</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-3">
+                                    <div class="bg-gradient-to-r from-green-400 to-blue-400 h-3 rounded-full" style="width: ${percentage}%"></div>
+                                </div>
+                            `;
+                            dailyProgressContainer.appendChild(dayElement);
+                        });
+                    }
+                    
+                    // İhlal listesi
+                    const violationsContainer = document.getElementById('violations-list');
+                    if (violationsContainer) {
+                        violationsContainer.innerHTML = '';
+                        
+                        if (this.reportsData.violations.length === 0) {
+                            violationsContainer.innerHTML = `
+                                <div class="text-center py-4 text-gray-400">
+                                    <i class="fas fa-check-circle text-3xl mb-2"></i>
+                                    <p class="text-sm">Bu hafta kural ihlali yapılmadı! 🎉</p>
+                                </div>
+                            `;
+                        } else {
+                            this.reportsData.violations.forEach(violation => {
+                                const violationElement = document.createElement('div');
+                                violationElement.className = 'flex items-start p-3 bg-red-50 rounded-xl mb-3';
+                                violationElement.innerHTML = `
+                                    <div class="w-10 h-10 bg-gradient-to-r from-red-100 to-pink-100 rounded-full flex items-center justify-center mr-3">
+                                        <i class="fas fa-exclamation-triangle text-red-500"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-bold text-gray-800 text-sm">${violation.date} ${violation.time}</p>
+                                        <p class="text-xs text-gray-600">${violation.duration} süreyle - ${violation.reason}</p>
+                                    </div>
+                                `;
+                                violationsContainer.appendChild(violationElement);
+                            });
+                        }
+                    }
+                },
+                
+                generateReport: function() {
+                    // Rapor oluşturma işlemi
+                    app.ui.showModal('Rapor Oluşturuldu', 'Detaylı performans raporunuz hazırlandı. 📊', '✅');
+                }
+            },
+
+            // --- YENİ QR KOD SİSTEMİ ---
+            market: {
+                generateQR: function() {
+                    const amount = document.getElementById('qr-amount').value;
+                    if (!amount || amount < 10) {
+                        app.ui.showModal('Geçersiz Miktar', 'En az 10 puan girmelisin.', '⚠️');
+                        return;
+                    }
+                    
+                    if (amount > app.state.stars) {
+                        app.ui.showModal('Yetersiz Bakiye', 'Yeterli puanın yok.', '🚫');
+                        return;
+                    }
+                    
+                    document.getElementById('qr-points').textContent = amount;
+                    document.getElementById('modal-qr-code').classList.remove('hidden');
+                    
+                    // QR geçmişine ekle
+                    const qrData = {
+                        amount: parseInt(amount),
+                        date: new Date().toISOString(),
+                        status: 'pending',
+                        code: 'FIDO-' + Math.random().toString(36).substr(2, 8).toUpperCase() + '-QR'
+                    };
+                    
+                    app.saveQRHistory(qrData);
+                    app.updateQRHistoryDisplay();
+                },
+
+                generateQRFromMain: function() {
+                    const amount = document.getElementById('qr-amount-main').value;
+                    if (!amount || amount < 10) {
+                        app.ui.showModal('Geçersiz Miktar', 'En az 10 puan girmelisin.', '⚠️');
+                        return;
+                    }
+                    
+                    if (amount > app.state.stars) {
+                        app.ui.showModal('Yetersiz Bakiye', 'Yeterli puanın yok.', '🚫');
+                        return;
+                    }
+                    
+                    // Puanı düş
+                    app.state.stars -= parseInt(amount);
+                    app.saveData({ stars: app.state.stars });
+                    
+                    // QR kodu oluştur
+                    const qrCode = 'FIDO-' + Math.random().toString(36).substr(2, 8).toUpperCase() + '-QR';
+                    
+                    // QR geçmişine ekle
+                    const qrData = {
+                        amount: parseInt(amount),
+                        date: new Date().toISOString(),
+                        status: 'active',
+                        code: qrCode
+                    };
+                    
+                    app.saveQRHistory(qrData);
+                    
+                    // UI'ı güncelle
+                    document.getElementById('qr-code-display').textContent = qrCode;
+                    document.getElementById('qr-display-section').classList.remove('hidden');
+                    
+                    app.ui.showModal('QR Kod Oluşturuldu!', `${amount} puan karşılığında QR kodun oluşturuldu. Alışveriş için kodunu okut! 📱`, '✅');
+                    
+                    // QR geçmişini güncelle
+                    app.updateQRHistoryDisplay();
+                },
+
+                copyQRCode: function() {
+                    const qrCode = document.getElementById('qr-code-display').textContent;
+                    navigator.clipboard.writeText(qrCode).then(() => {
+                        app.ui.showModal('Kopyalandı!', 'QR kodu panoya kopyalandı. 📋', '✅');
+                    }).catch(err => {
+                        console.error('Kopyalama hatası:', err);
+                        app.ui.showModal('Hata', 'Kopyalama başarısız oldu.', '❌');
+                    });
+                },
+
+                shareQRCode: function() {
+                    const qrCode = document.getElementById('qr-code-display').textContent;
+                    const shareText = `Fido QR Kodum: ${qrCode}\nAlışveriş için bu kodu okutabilirsin! 🛍️`;
+                    
+                    if (navigator.share) {
+                        navigator.share({
+                            title: 'Fido QR Kodum',
+                            text: shareText,
+                            url: window.location.href
+                        }).then(() => {
+                            console.log('Paylaşım başarılı');
+                        }).catch(err => {
+                            console.error('Paylaşım hatası:', err);
+                            app.ui.showModal('Paylaşım Hatası', 'QR kodu paylaşılamadı.', '❌');
+                        });
+                    } else {
+                        // Fallback: kopyala
+                        this.copyQRCode();
+                    }
+                },
+
+                updateQRHistoryDisplay: function() {
+                    const historyContainer = document.getElementById('qr-history');
+                    if (!historyContainer) return;
+                    
+                    historyContainer.innerHTML = '';
+                    
+                    app.state.qrHistory.slice(0, 5).forEach(qr => {
+                        const historyItem = document.createElement('div');
+                        historyItem.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-xl';
+                        historyItem.innerHTML = `
+                            <div>
+                                <p class="font-bold text-gray-700">${qr.amount} Puan</p>
+                                <p class="text-xs text-gray-500">${new Date(qr.date).toLocaleDateString('tr-TR')}</p>
+                            </div>
+                            <span class="text-xs ${qr.status === 'active' ? 'bg-green-100 text-green-700' : qr.status === 'used' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'} px-3 py-1 rounded-full">
+                                ${qr.status === 'active' ? 'Aktif' : qr.status === 'used' ? 'Kullanıldı' : 'Bekliyor'}
+                            </span>
+                        `;
+                        historyContainer.appendChild(historyItem);
+                    });
+                }
+            },
+
+            // --- ÇAPRAZ CİHAZ SİSTEMİ ---
+            crossDevice: {
+                lockAllDevices: function() {
+                    // Cihaz kilitleme simülasyonu
+                    console.log("Tüm cihazlar kilitlendi!");
+                },
+                
+                unlockAllDevices: function() {
+                    // Cihaz kilidini kaldırma simülasyonu
+                    console.log("Tüm cihazların kilidi açıldı!");
+                }
+            },
+
+            // --- EBEVEYN PANELİ ---
+            parentPanel: {
+                children: [],
+                
+                loadChildren: function() {
+                    const children = JSON.parse(localStorage.getItem('fido_children') || '[]');
+                    this.children = children.filter(child => child.parentId === app.state.userData.id);
+                    this.renderChildren();
+                },
+                
+                renderChildren: function() {
+                    const container = document.getElementById('children-list');
+                    if (!container) return;
+                    
+                    container.innerHTML = '';
+                    
+                    if (this.children.length === 0) {
+                        container.innerHTML = `
+                            <div class="text-center py-8 text-gray-400">
+                                <i class="fas fa-child text-4xl mb-3"></i>
+                                <p class="text-sm">Henüz çocuk hesabı eklenmemiş</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    this.children.forEach(child => {
+                        const childEl = document.createElement('div');
+                        childEl.className = 'card-childish p-4 flex items-center justify-between';
+                        childEl.innerHTML = `
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 rounded-full bg-gradient-to-r from-pink-200 to-purple-200 flex items-center justify-center text-2xl mr-4">
+                                    ${child.profileEmoji || '👦'}
+                                </div>
+                                <div>
+                                    <p class="font-bold text-gray-800">${child.displayName || child.username}</p>
+                                    <p class="text-xs text-gray-500">@${child.username}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="flex items-center text-yellow-500 font-bold">
+                                    <i class="fas fa-star mr-1"></i> ${child.stars || 0}
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1">${child.water || 0} su</div>
+                            </div>
+                        `;
+                        childEl.onclick = () => this.selectChild(child.id);
+                        container.appendChild(childEl);
+                    });
+                },
+                
+                selectChild: function(childId) {
+                    app.state.currentChildId = childId;
+                    const child = this.children.find(c => c.id === childId);
+                    if (child) {
+                        app.ui.showModal('Çocuk Seçildi', `${child.displayName} seçildi. Raporlarını görüntüleyebilirsin.`, '👦');
+                    }
+                },
+                
+                showAddChildModal: function() {
+                    document.getElementById('modal-add-child').classList.remove('hidden');
+                },
+                
+                createChildAccount: function() {
+                    const name = document.getElementById('child-name').value;
+                    const username = document.getElementById('child-username').value;
+                    const password = document.getElementById('child-password').value;
+                    
+                    if (!name || !username || !password) {
+                        app.ui.showModal('Eksik Bilgi', 'Lütfen tüm alanları doldurun.', '⚠️');
+                        return;
+                    }
+                    
+                    // Profil emojisini al
+                    const selectedEmoji = document.querySelector('.profile-emoji-option.border-pink-300')?.textContent || '👦';
+                    
+                    // Yeni çocuk oluştur
+                    const newChild = {
+                        id: 'child_' + Date.now(),
+                        parentId: app.state.userData.id,
+                        username: username,
+                        password: password,
+                        displayName: name,
+                        profileEmoji: selectedEmoji,
+                        stars: 0,
+                        water: 10,
+                        level: 1,
+                        inventory: ['seed_basic'],
+                        equippedPlant: 'seed_basic',
+                        createdAt: new Date().toISOString()
+                    };
+                    
+                    // Çocukları güncelle
+                    const children = JSON.parse(localStorage.getItem('fido_children') || '[]');
+                    children.push(newChild);
+                    localStorage.setItem('fido_children', JSON.stringify(children));
+                    
+                    // Ebeveynin childrenIds listesini güncelle
+                    const parents = JSON.parse(localStorage.getItem('fido_parents') || '[]');
+                    const parentIndex = parents.findIndex(p => p.id === app.state.userData.id);
+                    if (parentIndex !== -1) {
+                        if (!parents[parentIndex].childrenIds) {
+                            parents[parentIndex].childrenIds = [];
+                        }
+                        parents[parentIndex].childrenIds.push(newChild.id);
+                        localStorage.setItem('fido_parents', JSON.stringify(parents));
+                    }
+                    
+                    // Listeyi yenile
+                    this.children.push(newChild);
+                    this.renderChildren();
+                    
+                    document.getElementById('modal-add-child').classList.add('hidden');
+                    app.ui.showModal('Çocuk Eklendi!', `${name} için hesap oluşturuldu.`, '🎉');
+                    
+                    // Formu temizle
+                    document.getElementById('child-name').value = '';
+                    document.getElementById('child-username').value = '';
+                    document.getElementById('child-password').value = '';
+                },
+                
+                saveSettings: function() {
+                    const defaultDuration = document.getElementById('default-duration').value;
+                    const crossDeviceLock = document.getElementById('cross-device-lock').checked;
+                    
+                    app.state.crossDeviceLock = crossDeviceLock;
+                    
+                    app.ui.showModal('Ayarlar Kaydedildi!', `Varsayılan süre: ${defaultDuration} dakika<br>Çapraz cihaz kilidi: ${crossDeviceLock ? 'Açık' : 'Kapalı'}`, '✅');
+                },
+                
+                openCalendarView: function() {
+                    app.router.navigate('calendar');
+                },
+                
+                openReports: function() {
+                    app.router.navigate('reports');
+                },
+                
+                openNotifications: function() {
+                    app.ui.showModal('Bildirimler', 'Bekleyen istekler ve bildirimler burada görünecek.', '🔔');
+                },
+                
+                saveCalendar: function() {
+                    app.calendar.saveCalendar();
+                }
+            },
+
+            // --- AİLE ETKİNLİĞİ ---
+            familyActivity: {
+                uploadPhoto: function() {
+                    app.ui.showModal('Fotoğraf Yükle', 'Aile etkinliği fotoğrafı yükleme özelliği yakında eklenecek! 📸', '🔄');
+                },
+                
+                viewGallery: function() {
+                    app.ui.showModal('Hatıra Albümü', 'Aile etkinlikleri albümü yakında eklenecek. 🖼️', '🔄');
+                }
+            },
+
+            // --- SOSYAL ---
+            social: {
+                openFriendRequest: function() {
+                    app.ui.showModal('Arkadaş Ekle', 'Arkadaş ekleme özelliği ebeveyn onayı gerektirir. 👨‍👩‍👧‍👦', '🔒');
+                }
+            },
+
+            // --- PROFİL ---
+            profile: {
+                showAccountSwitcher: function() {
+                    if (app.state.userRole !== 'parent') {
+                        app.ui.showModal('Sadece Ebeveyn', 'Bu özellik sadece ebeveynler içindir.', '🔒');
+                        return;
+                    }
+                    
+                    // Kardeş hesaplarını göster
+                    const container = document.getElementById('sibling-accounts');
+                    container.innerHTML = '';
+                    
+                    // Mevcut çocukları al
+                    const children = JSON.parse(localStorage.getItem('fido_children') || '[]');
+                    const siblings = children.filter(child => child.parentId === app.state.userData.id);
+                    
+                    if (siblings.length === 0) {
+                        container.innerHTML = `
+                            <div class="text-center py-4 text-gray-400">
+                                <p class="text-sm">Henüz kardeş hesabı yok</p>
+                            </div>
+                        `;
+                    } else {
+                        siblings.forEach(sibling => {
+                            const siblingEl = document.createElement('div');
+                            siblingEl.className = `p-3 rounded-xl flex items-center bg-gray-50 hover:bg-gray-100 cursor-pointer`;
+                            siblingEl.innerHTML = `
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-pink-200 to-purple-200 flex items-center justify-center text-xl mr-3">
+                                    ${sibling.profileEmoji || '👦'}
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-bold text-gray-800">${sibling.displayName}</p>
+                                    <p class="text-xs text-gray-500">${sibling.username}</p>
+                                </div>
+                            `;
+                            siblingEl.onclick = () => this.switchToSibling(sibling.username, sibling.password);
+                            container.appendChild(siblingEl);
+                        });
+                    }
+                    
+                    document.getElementById('modal-account-switcher').classList.remove('hidden');
+                },
+                
+                switchToSibling: function(username, password) {
+                    document.getElementById('modal-account-switcher').classList.add('hidden');
+                    
+                    // Çocuk olarak giriş yap
+                    document.getElementById('child-username').value = username;
+                    document.getElementById('child-password').value = password;
+                    app.auth.loginChild();
+                },
+                
+                switchAccount: function() {
+                    // Demo amaçlı
+                    this.switchToSibling('ahmet', '123');
+                }
+            },
+
+            // --- ROUTER ---
+            router: {
+                navigate: function(viewName) {
+                    // Tüm view'ları gizle
+                    document.querySelectorAll('.view-section').forEach(el => {
+                        el.classList.remove('active');
+                    });
+                    
+                    // Hedef view'ı göster
+                    const targetView = document.getElementById(`view-${viewName}`);
+                    if (targetView) {
+                        targetView.classList.add('active');
+                        // Sayfanın başına kaydır
+                        targetView.scrollTo(0, 0);
+                    }
+                    
+                    // Navigasyon barlarını yönet
+                    const childNav = document.getElementById('bottom-nav');
+                    const parentNav = document.getElementById('parent-bottom-nav');
+                    
+                    if (childNav) childNav.classList.add('hidden');
+                    if (parentNav) parentNav.classList.add('hidden');
+                    
+                    if (viewName === 'welcome' || viewName === 'parent-login' || viewName === 'parent-register' || viewName === 'child-login') {
+                        // Hiçbir navigasyon gösterme
+                    } else if (viewName === 'parent-dashboard' || viewName === 'calendar' || viewName === 'reports') {
+                        if (parentNav) parentNav.classList.remove('hidden');
+                    } else {
+                        if (childNav) childNav.classList.remove('hidden');
+                    }
+                    
+                    // Aktif navigasyon butonlarını güncelle
+                    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+                    
+                    // QR kod sayfası için özel işlem
+                    if (viewName === 'qr-code') {
+                        // QR sayfasına özel başlangıç işlemleri
+                        app.market.updateQRHistoryDisplay();
+                    }
+                    
+                    // Takvim sayfası için özel işlem
+                    if (viewName === 'calendar') {
+                        app.calendar.renderCalendar();
+                    }
+                    
+                    // Raporlar sayfası için özel işlem
+                    if (viewName === 'reports') {
+                        app.reports.renderReports();
+                    }
+                    
+                    // Basit eşleme
+                    if (viewName === 'garden') {
+                        document.querySelectorAll('.nav-btn')[0]?.classList.add('active');
+                    } else if (viewName === 'seeds') {
+                        document.querySelectorAll('.nav-btn')[1]?.classList.add('active');
+                    } else if (viewName === 'qr-code') {
+                        document.querySelectorAll('.nav-btn')[2]?.classList.add('active');
+                    } else if (viewName === 'social') {
+                        document.querySelectorAll('.nav-btn')[4]?.classList.add('active');
+                    } else if (viewName === 'market') {
+                        document.querySelectorAll('.nav-btn')[5]?.classList.add('active');
+                    } else if (viewName === 'settings') {
+                        document.querySelectorAll('.nav-btn')[6]?.classList.add('active');
+                    } else if (viewName === 'parent-dashboard') {
+                        document.querySelectorAll('.nav-btn')[0]?.classList.add('active');
+                    } else if (viewName === 'calendar') {
+                        document.querySelectorAll('.nav-btn')[1]?.classList.add('active');
+                    } else if (viewName === 'reports') {
+                        document.querySelectorAll('.nav-btn')[3]?.classList.add('active');
+                    }
+                }
+            },
+
+            // --- UI YÖNETİMİ ---
+            ui: {
+                initListeners: function() {
+                    // Slider değer güncelleme
+                    const slider = document.getElementById('duration-slider');
+                    if (slider) {
+                        slider.addEventListener('input', (e) => {
+                            document.getElementById('slider-value').textContent = `${e.target.value} dk`;
+                        });
+                    }
+                    
+                    // Ayarlar sayfası slider'ı
+                    const plantDurationSlider = document.getElementById('default-plant-duration');
+                    if (plantDurationSlider) {
+                        plantDurationSlider.addEventListener('input', (e) => {
+                            document.getElementById('duration-value').textContent = `${e.target.value} dk`;
+                        });
+                    }
+                    
+                    // QR miktarı güncelleme
+                    const qrAmountInput = document.getElementById('qr-amount-main');
+                    if (qrAmountInput) {
+                        qrAmountInput.addEventListener('input', (e) => {
+                            const value = e.target.value;
+                            if (value > app.state.stars) {
+                                e.target.value = app.state.stars;
+                            }
+                        });
+                    }
+                    
+                    // Çark dilimlerini çiz
+                    const wheelSvg = document.getElementById('wheel-svg');
+                    if (wheelSvg) {
+                        wheelSvg.innerHTML = `
+                            <circle cx="50" cy="50" r="50" fill="#F3F4F6" />
+                            <path d="M50,50 L50,0 A50,50 0 0,1 93.3,25 Z" fill="#F87171" />
+                            <path d="M50,50 L93.3,25 A50,50 0 0,1 93.3,75 Z" fill="#FBBF24" />
+                            <path d="M50,50 L93.3,75 A50,50 0 0,1 50,100 Z" fill="#34D399" />
+                            <path d="M50,50 L50,100 A50,50 0 0,1 6.7,75 Z" fill="#60A5FA" />
+                            <path d="M50,50 L6.7,75 A50,50 0 0,1 6.7,25 Z" fill="#A78BFA" />
+                            <path d="M50,50 L6.7,25 A50,50 0 0,1 50,0 Z" fill="#F472B6" />
+                            <circle cx="50" cy="50" r="15" fill="white" stroke="#E5E7EB" stroke-width="2" />
+                            <text x="50" y="50" text-anchor="middle" dominant-baseline="middle" font-size="8" font-weight="bold" fill="#6B7280">
+                                ÇARK
+                            </text>
+                        `;
+                    }
+                    
+                    // Profil emoji seçici
+                    document.querySelectorAll('.profile-emoji-option').forEach(option => {
+                        option.addEventListener('click', function() {
+                            document.querySelectorAll('.profile-emoji-option').forEach(opt => {
+                                opt.classList.remove('border-pink-300');
+                                opt.classList.add('border-gray-300');
+                            });
+                            this.classList.remove('border-gray-300');
+                            this.classList.add('border-pink-300');
+                        });
+                    });
+                    
+                    // Çapraz cihaz anahtarı
+                    const crossDeviceToggle = document.getElementById('cross-device-lock');
+                    if (crossDeviceToggle) {
+                        crossDeviceToggle.addEventListener('change', function() {
+                            const label = this.nextElementSibling;
+                            if (this.checked) {
+                                label.querySelector('.dot').style.transform = 'translateX(24px)';
+                                label.style.backgroundColor = '#10B981';
+                            } else {
+                                label.querySelector('.dot').style.transform = 'translateX(0)';
+                                label.style.backgroundColor = '#9CA3AF';
+                            }
+                        });
+                    }
+                    
+                    // Ayarlar sayfası toggle butonları
+                    const themeToggle = document.getElementById('theme-toggle');
+                    if (themeToggle) {
+                        themeToggle.addEventListener('change', function() {
+                            const label = this.nextElementSibling;
+                            if (this.checked) {
+                                label.querySelector('.dot').style.transform = 'translateX(24px)';
+                                label.style.backgroundColor = '#10B981';
+                            } else {
+                                label.querySelector('.dot').style.transform = 'translateX(0)';
+                                label.style.backgroundColor = '#9CA3AF';
+                            }
+                        });
+                    }
+                    
+                    const soundToggle = document.getElementById('sound-toggle');
+                    if (soundToggle) {
+                        soundToggle.addEventListener('change', function() {
+                            const label = this.nextElementSibling;
+                            if (this.checked) {
+                                label.querySelector('.dot').style.transform = 'translateX(24px)';
+                                label.style.backgroundColor = '#10B981';
+                            } else {
+                                label.querySelector('.dot').style.transform = 'translateX(0)';
+                                label.style.backgroundColor = '#9CA3AF';
+                            }
+                        });
+                    }
+                    
+                    const notificationToggle = document.getElementById('notification-toggle');
+                    if (notificationToggle) {
+                        notificationToggle.addEventListener('change', function() {
+                            const label = this.nextElementSibling;
+                            if (this.checked) {
+                                label.querySelector('.dot').style.transform = 'translateX(24px)';
+                                label.style.backgroundColor = '#10B981';
+                            } else {
+                                label.querySelector('.dot').style.transform = 'translateX(0)';
+                                label.style.backgroundColor = '#9CA3AF';
+                            }
+                        });
+                    }
+                    
+                    const crossDeviceSetting = document.getElementById('cross-device-setting');
+                    if (crossDeviceSetting) {
+                        crossDeviceSetting.addEventListener('change', function() {
+                            const label = this.nextElementSibling;
+                            if (this.checked) {
+                                label.querySelector('.dot').style.transform = 'translateX(24px)';
+                                label.style.backgroundColor = '#10B981';
+                            } else {
+                                label.querySelector('.dot').style.transform = 'translateX(0)';
+                                label.style.backgroundColor = '#9CA3AF';
+                            }
+                        });
+                    }
+                    
+                    // Market kategori butonları
+                    document.querySelectorAll('.category-btn').forEach((btn, index) => {
+                        btn.addEventListener('click', function() {
+                            document.querySelectorAll('.category-btn').forEach(b => {
+                                b.classList.remove('from-green-500', 'to-emerald-500', 'from-blue-500', 'to-cyan-500', 'from-purple-500', 'to-pink-500', 'from-yellow-500', 'to-orange-500');
+                                b.classList.add('bg-gray-200', 'text-gray-700');
+                            });
+                            
+                            const colors = [
+                                ['from-green-500', 'to-emerald-500'],
+                                ['from-blue-500', 'to-cyan-500'],
+                                ['from-purple-500', 'to-pink-500'],
+                                ['from-yellow-500', 'to-orange-500']
+                            ];
+                            
+                            this.classList.remove('bg-gray-200', 'text-gray-700');
+                            this.classList.add(colors[index][0], colors[index][1], 'text-white');
+                        });
+                    });
+                    
+                    // Mobil dokunmatik için özel ayarlar
+                    this.setupMobileTouch();
+                },
+                
+                // Mobil dokunmatik ayarları
+                setupMobileTouch: function() {
+                    // Butonlara dokunma efekti ekle
+                    document.querySelectorAll('button').forEach(btn => {
+                        btn.addEventListener('touchstart', function() {
+                            this.classList.add('active');
+                        });
+                        
+                        btn.addEventListener('touchend', function() {
+                            this.classList.remove('active');
+                        });
+                    });
+                },
+                
+                updateHeader: function() {
+                    // Puanları güncelle
+                    const starsEl = document.getElementById('currency-stars');
+                    const waterEl = document.getElementById('currency-water');
+                    const marketStarsEl = document.getElementById('market-stars');
+                    const marketWaterEl = document.getElementById('market-water');
+                    const levelEl = document.getElementById('user-level');
+                    
+                    if (starsEl) starsEl.textContent = app.state.stars;
+                    if (waterEl) waterEl.textContent = app.state.water;
+                    if (marketStarsEl) marketStarsEl.textContent = app.state.stars;
+                    if (marketWaterEl) marketWaterEl.textContent = app.state.water;
+                    if (levelEl) levelEl.textContent = app.state.level;
+                },
+                
+                showModal: function(title, body, icon) {
+                    const titleEl = document.getElementById('msg-title');
+                    const bodyEl = document.getElementById('msg-body');
+                    const iconEl = document.getElementById('msg-icon');
+                    const modal = document.getElementById('modal-message');
+                    
+                    if (titleEl) titleEl.textContent = title;
+                    if (bodyEl) bodyEl.innerHTML = body;
+                    if (iconEl) iconEl.textContent = icon;
+                    if (modal) modal.classList.remove('hidden');
+                }
+            }
+        };
+        
+        // Uygulamayı başlat
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+        
+        // iOS için orientation change sonrası yeniden boyutlandırma
+        window.addEventListener('orientationchange', function() {
+            setTimeout(app.setViewportHeight, 100);
+        });
+    </script>
+</body>
+</html>
