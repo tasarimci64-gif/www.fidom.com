@@ -331,6 +331,149 @@
             background: white;
             object-fit: cover;
         }
+        
+        /* ---------- EK DÜZENLEMELER ---------- */
+        
+        /* Mobil için alt navigasyon düzenlemeleri */
+        @media (max-width: 414px) {
+            #bottom-nav {
+                padding-left: 4px;
+                padding-right: 4px;
+                justify-content: space-around;
+            }
+            
+            #bottom-nav .nav-btn {
+                min-width: 50px;
+                flex: 0 1 auto;
+                margin: 0 2px;
+            }
+            
+            #bottom-nav .nav-btn div {
+                width: 40px;
+                height: 40px;
+            }
+            
+            #bottom-nav .nav-btn span {
+                font-size: 9px;
+                line-height: 1;
+                margin-top: 2px;
+            }
+            
+            #bottom-nav .relative {
+                min-width: 60px;
+                flex: 0 0 auto;
+            }
+            
+            #bottom-nav .relative button {
+                width: 56px;
+                height: 56px;
+                border-width: 4px;
+            }
+            
+            /* Ebeveyn navigasyonu için de aynı düzenleme */
+            #parent-bottom-nav {
+                padding-left: 4px;
+                padding-right: 4px;
+                justify-content: space-around;
+            }
+            
+            #parent-bottom-nav .nav-btn {
+                min-width: 50px;
+                flex: 0 1 auto;
+                margin: 0 2px;
+            }
+            
+            #parent-bottom-nav .nav-btn div {
+                width: 40px;
+                height: 40px;
+            }
+            
+            #parent-bottom-nav .nav-btn span {
+                font-size: 9px;
+                line-height: 1;
+                margin-top: 2px;
+            }
+            
+            #parent-bottom-nav .relative {
+                min-width: 60px;
+                flex: 0 0 auto;
+            }
+            
+            #parent-bottom-nav .relative button {
+                width: 56px;
+                height: 56px;
+                border-width: 4px;
+            }
+        }
+        
+        /* Çok küçük ekranlar için (iPhone SE vb.) */
+        @media (max-width: 375px) {
+            #bottom-nav .nav-btn {
+                min-width: 45px;
+                margin: 0 1px;
+            }
+            
+            #bottom-nav .nav-btn div {
+                width: 36px;
+                height: 36px;
+            }
+            
+            #bottom-nav .nav-btn span {
+                font-size: 8px;
+            }
+            
+            #bottom-nav .relative button {
+                width: 52px;
+                height: 52px;
+            }
+            
+            /* Ebeveyn navigasyonu için de aynı */
+            #parent-bottom-nav .nav-btn {
+                min-width: 45px;
+                margin: 0 1px;
+            }
+            
+            #parent-bottom-nav .nav-btn div {
+                width: 36px;
+                height: 36px;
+            }
+            
+            #parent-bottom-nav .nav-btn span {
+                font-size: 8px;
+            }
+            
+            #parent-bottom-nav .relative button {
+                width: 52px;
+                height: 52px;
+            }
+        }
+        
+        /* Mobilde kaydırma çubuğunu gizleme */
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        
+        .no-scrollbar::-webkit-scrollbar {
+            display: none; /* Chrome, Safari and Opera */
+        }
+        
+        /* Aktif navigasyon butonu için stil */
+        .nav-btn.active {
+            color: #10B981;
+        }
+        
+        .nav-btn.active div {
+            background: linear-gradient(to bottom, #D1FAE5, #A7F3D0);
+            color: #10B981;
+        }
+        
+        /* Navigasyon butonları için hover efekti */
+        .nav-btn:hover div {
+            transform: scale(1.05);
+        }
+        
+        /* ---------- DÜZENLEME SONU ---------- */
     </style>
 </head>
 <body class="no-select">
@@ -1468,7 +1611,7 @@
         </div>
 
         <!-- ALT NAVİGASYON (Çocuk Arayüzü İçin) -->
-        <nav id="bottom-nav" class="absolute bottom-0 w-full bg-gradient-to-t from-white to-gray-50 border-t-2 border-gray-100 py-3 px-6 flex justify-between items-center z-40 hidden">
+        <nav id="bottom-nav" class="absolute bottom-0 w-full bg-gradient-to-t from-white to-gray-50 border-t-2 border-gray-100 py-3 px-4 flex justify-between items-center z-40 hidden">
             <button onclick="app.router.navigate('garden')" class="nav-btn active flex flex-col items-center text-gray-400 hover:text-green-500 transition">
                 <div class="w-12 h-12 rounded-full flex items-center justify-center mb-1">
                     <i class="fa-solid fa-house text-2xl"></i>
@@ -1516,7 +1659,7 @@
         </nav>
 
         <!-- EBEVEYN ALT NAVİGASYON -->
-        <nav id="parent-bottom-nav" class="absolute bottom-0 w-full bg-gradient-to-t from-white to-blue-50 border-t-2 border-blue-100 py-3 px-6 flex justify-between items-center z-40 hidden">
+        <nav id="parent-bottom-nav" class="absolute bottom-0 w-full bg-gradient-to-t from-white to-blue-50 border-t-2 border-blue-100 py-3 px-4 flex justify-between items-center z-40 hidden">
             <button onclick="app.router.navigate('parent-dashboard')" class="nav-btn active flex flex-col items-center text-gray-400 hover:text-blue-500 transition">
                 <div class="w-12 h-12 rounded-full flex items-center justify-center mb-1">
                     <i class="fa-solid fa-chart-line text-2xl"></i>
