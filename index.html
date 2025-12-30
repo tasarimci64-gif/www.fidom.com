@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Fido - Ekranı Kapat, Anılarını Büyüt</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -20,14 +20,6 @@
             --color-accent: #A78BFA;
             --color-danger: #F87171;
             --bg-soft: #F0F9FF;
-            /* Maskot ayarları için değişkenler - İSTEDİĞİNİZ GİBİ AYARLAYABİLİRSİNİZ */
-            --maskot-size: 64px;
-            --maskot-bottom: 16px;
-            --maskot-right: 16px;
-            --maskot-border-radius: 0;
-            --maskot-border: none;
-            --maskot-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            --maskot-bg: transparent;
         }
         
         * {
@@ -52,10 +44,6 @@
             overflow: hidden;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-            padding-left: env(safe-area-inset-left);
-            padding-right: env(safe-area-inset-right);
         }
         
         h1, h2, h3, .fredoka {
@@ -129,7 +117,7 @@
             animation: pulse-soft 2s infinite;
         }
 
-        /* Görünüm Geçiş Animasyonları */
+        /* Görünüm Geçiş Animasyonları - DÜZELTİLDİ */
         .view-section {
             position: absolute;
             top: 0;
@@ -142,7 +130,7 @@
             visibility: hidden;
             transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
             transform: translateY(20px);
-            -webkit-overflow-scrolling: touch;
+            -webkit-overflow-scrolling: touch; /* iOS smooth scroll */
             scroll-behavior: smooth;
             z-index: 1;
         }
@@ -156,7 +144,7 @@
         
         /* Sabit yükseklikli içerik için */
         .view-section.fixed-height {
-            height: calc(100% - 80px);
+            height: calc(100% - 80px); /* Alt navigasyon için yer bırak */
             overflow-y: auto;
         }
 
@@ -186,7 +174,7 @@
             border: 3px solid white;
             position: relative;
             overflow: hidden;
-            min-height: 48px;
+            min-height: 48px; /* Mobil dokunmatik uyumlu boyut */
         }
         
         .btn-childish:active {
@@ -232,7 +220,7 @@
             box-shadow: 0 15px 30px rgba(0,0,0,0.1);
         }
 
-        /* Custom Scrollbar */
+        /* Custom Scrollbar - Mobil uyumlu */
         ::-webkit-scrollbar {
             width: 6px;
         }
@@ -247,7 +235,7 @@
         
         /* Mobil cihazlar için input ve buton stilleri */
         input, textarea, button, select {
-            font-size: 16px !important;
+            font-size: 16px !important; /* iOS zoom önleme */
         }
         
         /* Mobil cihazlarda daha büyük tıklama alanları */
@@ -322,7 +310,7 @@
         
         /* QR kod sayfası için düzenleme */
         #view-qr-code {
-            padding-bottom: 100px;
+            padding-bottom: 100px; /* Alt navigasyon + güvenli alan */
         }
         
         /* Ebeveyn paneli için düzenleme */
@@ -330,70 +318,21 @@
             padding-bottom: 100px;
         }
         
-        /* Maskot resmi için YENİ STİL - TAMAMEN ÖZELLEŞTİRİLEBİLİR */
+        /* Maskot resmi için stil */
         #maskot-image {
             position: absolute;
-            bottom: var(--maskot-bottom, 16px);
-            right: var(--maskot-right, 16px);
-            width: var(--maskot-size, 64px);
-            height: var(--maskot-size, 64px);
-            border-radius: var(--maskot-border-radius, 0);
-            border: var(--maskot-border, none);
-            box-shadow: var(--maskot-shadow, 0 4px 12px rgba(0,0,0,0.15));
-            background: var(--maskot-bg, transparent);
-            object-fit: contain;
-            z-index: 30;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-        }
-        
-        #maskot-image:hover {
-            transform: scale(1.1);
-        }
-        
-        /* Maskot ayar paneli için */
-        .maskot-control-panel {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            bottom: 16px;
+            right: 16px;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            border: 3px solid #FBBF24;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            z-index: 10000;
-            display: none;
-            max-width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
+            object-fit: cover;
         }
         
         /* ---------- EK DÜZENLEMELER ---------- */
-        
-        /* Mobil için çocuk paneli üst bar ayarı */
-        #view-garden .bg-gradient-to-r.from-green-400.to-cyan-400 {
-            padding-top: max(20px, env(safe-area-inset-top, 20px));
-            padding-bottom: 1rem;
-            min-height: 100px;
-            display: flex;
-            align-items: center;
-        }
-        
-        /* Bitki alanı için düzenleme */
-        #view-garden .relative.w-full.h-80 {
-            height: 280px;
-            min-height: 280px;
-            margin-top: 0;
-            padding-top: 10px;
-        }
-        
-        /* Kontrol paneli için düzenleme */
-        #view-garden .p-6.bg-gradient-to-b.from-white.to-emerald-50 {
-            margin-top: -20px;
-            padding-top: 25px;
-            padding-bottom: 100px;
-            min-height: calc(100vh - 360px);
-        }
         
         /* Mobil için alt navigasyon düzenlemeleri */
         @media (max-width: 414px) {
@@ -465,21 +404,6 @@
                 height: 56px;
                 border-width: 4px;
             }
-            
-            /* Çocuk paneli üst bar mobil ayarı */
-            #view-garden .bg-gradient-to-r.from-green-400.to-cyan-400 {
-                padding-top: max(15px, env(safe-area-inset-top, 15px));
-                padding-left: 1rem;
-                padding-right: 1rem;
-            }
-            
-            /* Maskot boyutu mobilde */
-            #maskot-image {
-                width: calc(var(--maskot-size, 64px) * 0.8);
-                height: calc(var(--maskot-size, 64px) * 0.8);
-                bottom: calc(var(--maskot-bottom, 16px) * 0.8);
-                right: calc(var(--maskot-right, 16px) * 0.8);
-            }
         }
         
         /* Çok küçük ekranlar için (iPhone SE vb.) */
@@ -522,32 +446,16 @@
                 width: 52px;
                 height: 52px;
             }
-            
-            /* Çocuk paneli küçük ekran ayarı */
-            #view-garden .bg-gradient-to-r.from-green-400.to-cyan-400 {
-                padding-top: max(10px, env(safe-area-inset-top, 10px));
-            }
-            
-            #view-garden .relative.w-full.h-80 {
-                height: 250px;
-                min-height: 250px;
-            }
-            
-            /* Maskot daha da küçük */
-            #maskot-image {
-                width: calc(var(--maskot-size, 64px) * 0.7);
-                height: calc(var(--maskot-size, 64px) * 0.7);
-            }
         }
         
         /* Mobilde kaydırma çubuğunu gizleme */
         .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
         }
         
         .no-scrollbar::-webkit-scrollbar {
-            display: none;
+            display: none; /* Chrome, Safari and Opera */
         }
         
         /* Aktif navigasyon butonu için stil */
@@ -565,123 +473,10 @@
             transform: scale(1.05);
         }
         
-        /* Yeni eklenen: Zoom kontrolü için */
-        .zoom-controls {
-            position: fixed;
-            bottom: 100px;
-            right: 20px;
-            z-index: 999;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 10px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            display: none;
-        }
-        
-        .zoom-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #4ADE80;
-            color: white;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        /* Maskot ayar paneli düğmesi */
-        #maskot-settings-btn {
-            position: fixed;
-            bottom: 100px;
-            left: 20px;
-            z-index: 999;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #FBBF24;
-            color: white;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        
         /* ---------- DÜZENLEME SONU ---------- */
     </style>
 </head>
 <body class="no-select">
-
-    <!-- Maskot ayar paneli (gizli başlangıçta) -->
-    <div id="maskot-control-panel" class="maskot-control-panel">
-        <h3 class="text-xl font-bold mb-4">Maskot Ayarları</h3>
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-bold mb-2">Boyut (px):</label>
-                <input type="range" id="maskot-size-slider" min="32" max="128" step="8" value="64" class="w-full">
-                <div class="flex justify-between text-xs">
-                    <span>Küçük</span>
-                    <span id="maskot-size-value">64px</span>
-                    <span>Büyük</span>
-                </div>
-            </div>
-            
-            <div>
-                <label class="block text-sm font-bold mb-2">Alt mesafe (px):</label>
-                <input type="range" id="maskot-bottom-slider" min="0" max="100" step="4" value="16" class="w-full">
-                <div class="flex justify-between text-xs">
-                    <span>Yukarı</span>
-                    <span id="maskot-bottom-value">16px</span>
-                    <span>Aşağı</span>
-                </div>
-            </div>
-            
-            <div>
-                <label class="block text-sm font-bold mb-2">Sağ mesafe (px):</label>
-                <input type="range" id="maskot-right-slider" min="0" max="100" step="4" value="16" class="w-full">
-                <div class="flex justify-between text-xs">
-                    <span>Sol</span>
-                    <span id="maskot-right-value">16px</span>
-                    <span>Sağ</span>
-                </div>
-            </div>
-            
-            <div>
-                <label class="block text-sm font-bold mb-2">Köşe yuvarlaklığı:</label>
-                <input type="range" id="maskot-radius-slider" min="0" max="50" step="2" value="0" class="w-full">
-                <div class="flex justify-between text-xs">
-                    <span>Köşeli</span>
-                    <span id="maskot-radius-value">0px</span>
-                    <span>Yuvarlak</span>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-4">
-                <button id="maskot-reset-btn" class="bg-gray-200 text-gray-700 py-2 rounded-lg font-bold">Sıfırla</button>
-                <button id="maskot-close-btn" class="bg-green-500 text-white py-2 rounded-lg font-bold">Tamam</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Zoom kontrol düğmeleri -->
-    <div class="zoom-controls" id="zoom-controls">
-        <button class="zoom-btn" onclick="app.zoom.in()">+</button>
-        <button class="zoom-btn" onclick="app.zoom.out()">-</button>
-        <button class="zoom-btn" onclick="app.zoom.reset()">↺</button>
-    </div>
-
-    <!-- Maskot ayar düğmesi -->
-    <button id="maskot-settings-btn" title="Maskot Ayarları">
-        <i class="fas fa-cog"></i>
-    </button>
 
     <div id="mobile-container">
         
@@ -853,10 +648,10 @@
             </div>
         </div>
 
-        <!-- 5. ANA EKRAN: BAHÇEM (Çocuk Arayüzü) - DÜZENLENDİ -->
+        <!-- 5. ANA EKRAN: BAHÇEM (Çocuk Arayüzü) -->
         <div id="view-garden" class="view-section fixed-height">
             <!-- Üst Bar - Gelişmiş -->
-            <div class="bg-gradient-to-r from-green-400 to-cyan-400 p-4 shadow-md flex justify-between items-center sticky top-0 z-20 rounded-b-3xl" style="padding-top: max(20px, env(safe-area-inset-top, 20px));">
+            <div class="bg-gradient-to-r from-green-400 to-cyan-400 p-4 shadow-md flex justify-between items-center sticky top-0 z-20 rounded-b-3xl">
                 <div class="flex items-center gap-3">
                     <!-- Profil Resmi -->
                     <div id="profile-pic-container" class="w-12 h-12 bg-gradient-to-r from-pink-300 to-purple-300 rounded-full flex items-center justify-center text-white font-bold border-4 border-white shadow-lg">
@@ -885,7 +680,7 @@
             </div>
 
             <!-- Bitki Alanı -->
-            <div class="relative w-full h-80 bg-gradient-to-b from-sky-300 to-emerald-200 flex justify-center items-end overflow-hidden" style="min-height: 280px;">
+            <div class="relative w-full h-80 bg-gradient-to-b from-sky-300 to-emerald-200 flex justify-center items-end overflow-hidden">
                 <!-- Arka Plan Süsleri -->
                 <div class="absolute top-4 left-8 text-6xl opacity-30 float-animation">☁️</div>
                 <div class="absolute top-12 right-12 text-4xl opacity-40 float-animation" style="animation-delay: 1s;">☁️</div>
@@ -914,8 +709,8 @@
                     Büyümeye hazırım! 🌱
                 </div>
                 
-                <!-- Maskot Resmi - ÇERÇEVESİ KALDIRILDI VE ÖZELLEŞTİRİLEBİLİR -->
-                <img src="maskot.png" alt="Maskot" id="maskot-image" onclick="app.maskot.openSettings()">
+                <!-- Maskot Resmi -->
+                <img src="maskot.png" alt="Maskot" id="maskot-image">
                 
                 <!-- Maskot Karakteri -->
                 <div id="mascot-character" class="absolute bottom-4 left-4 w-20 h-20 hidden">
@@ -1403,6 +1198,8 @@
                         <p class="text-3xl font-bold text-blue-300"><i class="fa-solid fa-droplet"></i> <span id="market-water">0</span></p>
                     </div>
                 </div>
+
+                <!-- QR Kod Oluştur KARTI KALDIRILDI -->
 
                 <!-- Ürün Kategorileri -->
                 <div class="flex overflow-x-auto gap-3 mb-6 pb-2 no-scrollbar">
@@ -2000,20 +1797,6 @@
                     difficulty: 'normal',
                     defaultPlantDuration: 25,
                     crossDeviceLock: true
-                },
-                // Yeni: Zoom ayarları
-                zoomLevel: 1.0,
-                minZoom: 0.5,
-                maxZoom: 2.0,
-                // Yeni: Maskot ayarları
-                maskotSettings: {
-                    size: 64,
-                    bottom: 16,
-                    right: 16,
-                    borderRadius: 0,
-                    border: 'none',
-                    shadow: '0 4px 12px rgba(0,0,0,0.15)',
-                    bg: 'transparent'
                 }
             },
             
@@ -2062,12 +1845,6 @@
                 
                 // Rapor verilerini yükle
                 this.reports.loadReports();
-                
-                // Maskot ayarlarını yükle
-                this.maskot.loadSettings();
-                
-                // Zoom kontrollerini başlat
-                this.zoom.init();
             },
             
             // Mobil cihaz kontrolü
@@ -2076,9 +1853,6 @@
                 if (isMobile) {
                     document.body.classList.add('is-mobile');
                     console.log("Mobil cihaz tespit edildi");
-                    
-                    // Mobil cihazlarda zoom kontrollerini göster
-                    document.getElementById('zoom-controls').style.display = 'flex';
                 }
             },
             
@@ -2093,16 +1867,6 @@
                 this.setViewportHeight();
                 window.addEventListener('resize', this.setViewportHeight.bind(this));
                 window.addEventListener('orientationchange', this.setViewportHeight.bind(this));
-                
-                // Çift tıklama zoom'u önle
-                let lastTouchEnd = 0;
-                document.addEventListener('touchend', function(event) {
-                    const now = (new Date()).getTime();
-                    if (now - lastTouchEnd <= 300) {
-                        event.preventDefault();
-                    }
-                    lastTouchEnd = now;
-                }, false);
             },
             
             // Viewport height ayarı
@@ -2291,182 +2055,6 @@
                     localStorage.setItem('fido_qr_history', JSON.stringify(this.state.qrHistory));
                 } catch (error) {
                     console.error("QR geçmişi kaydetme hatası:", error);
-                }
-            },
-
-            // --- YENİ: ZOOM SİSTEMİ ---
-            zoom: {
-                init: function() {
-                    // Zoom kontrollerini başlat
-                    const zoomControls = document.getElementById('zoom-controls');
-                    if (zoomControls) {
-                        // Sadece mobil cihazlarda göster
-                        if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                            zoomControls.style.display = 'none';
-                        }
-                    }
-                    
-                    // Zoom seviyesini localStorage'dan yükle
-                    const savedZoom = localStorage.getItem('fido_zoom_level');
-                    if (savedZoom) {
-                        app.state.zoomLevel = parseFloat(savedZoom);
-                        app.zoom.applyZoom();
-                    }
-                },
-                
-                in: function() {
-                    if (app.state.zoomLevel < app.state.maxZoom) {
-                        app.state.zoomLevel += 0.1;
-                        app.zoom.applyZoom();
-                        app.zoom.saveZoom();
-                    }
-                },
-                
-                out: function() {
-                    if (app.state.zoomLevel > app.state.minZoom) {
-                        app.state.zoomLevel -= 0.1;
-                        app.zoom.applyZoom();
-                        app.zoom.saveZoom();
-                    }
-                },
-                
-                reset: function() {
-                    app.state.zoomLevel = 1.0;
-                    app.zoom.applyZoom();
-                    app.zoom.saveZoom();
-                },
-                
-                applyZoom: function() {
-                    const container = document.getElementById('mobile-container');
-                    if (container) {
-                        container.style.transform = `scale(${app.state.zoomLevel})`;
-                        container.style.transformOrigin = 'center center';
-                        
-                        // Container'ın genişliğini ve yüksekliğini ayarla
-                        const originalWidth = 414;
-                        const originalHeight = 896;
-                        
-                        const scaledWidth = originalWidth * app.state.zoomLevel;
-                        const scaledHeight = originalHeight * app.state.zoomLevel;
-                        
-                        container.style.width = `${scaledWidth}px`;
-                        container.style.height = `${scaledHeight}px`;
-                        container.style.margin = 'auto';
-                    }
-                },
-                
-                saveZoom: function() {
-                    localStorage.setItem('fido_zoom_level', app.state.zoomLevel.toString());
-                }
-            },
-
-            // --- YENİ: MASKOT AYAR SİSTEMİ ---
-            maskot: {
-                loadSettings: function() {
-                    // Maskot ayarlarını localStorage'dan yükle
-                    try {
-                        const savedSettings = JSON.parse(localStorage.getItem('fido_maskot_settings') || '{}');
-                        if (Object.keys(savedSettings).length > 0) {
-                            app.state.maskotSettings = { ...app.state.maskotSettings, ...savedSettings };
-                            app.maskot.applySettings();
-                        }
-                    } catch (error) {
-                        console.error("Maskot ayarları yükleme hatası:", error);
-                    }
-                },
-                
-                saveSettings: function() {
-                    // Maskot ayarlarını localStorage'a kaydet
-                    localStorage.setItem('fido_maskot_settings', JSON.stringify(app.state.maskotSettings));
-                },
-                
-                applySettings: function() {
-                    // CSS değişkenlerini güncelle
-                    const root = document.documentElement;
-                    root.style.setProperty('--maskot-size', `${app.state.maskotSettings.size}px`);
-                    root.style.setProperty('--maskot-bottom', `${app.state.maskotSettings.bottom}px`);
-                    root.style.setProperty('--maskot-right', `${app.state.maskotSettings.right}px`);
-                    root.style.setProperty('--maskot-border-radius', `${app.state.maskotSettings.borderRadius}px`);
-                    root.style.setProperty('--maskot-border', app.state.maskotSettings.border);
-                    root.style.setProperty('--maskot-shadow', app.state.maskotSettings.shadow);
-                    root.style.setProperty('--maskot-bg', app.state.maskotSettings.bg);
-                },
-                
-                openSettings: function() {
-                    // Ayar panelini aç
-                    const panel = document.getElementById('maskot-control-panel');
-                    if (panel) {
-                        // Mevcut değerleri slidelara yükle
-                        document.getElementById('maskot-size-slider').value = app.state.maskotSettings.size;
-                        document.getElementById('maskot-size-value').textContent = `${app.state.maskotSettings.size}px`;
-                        
-                        document.getElementById('maskot-bottom-slider').value = app.state.maskotSettings.bottom;
-                        document.getElementById('maskot-bottom-value').textContent = `${app.state.maskotSettings.bottom}px`;
-                        
-                        document.getElementById('maskot-right-slider').value = app.state.maskotSettings.right;
-                        document.getElementById('maskot-right-value').textContent = `${app.state.maskotSettings.right}px`;
-                        
-                        document.getElementById('maskot-radius-slider').value = app.state.maskotSettings.borderRadius;
-                        document.getElementById('maskot-radius-value').textContent = `${app.state.maskotSettings.borderRadius}px`;
-                        
-                        // Event listener'ları ekle
-                        document.getElementById('maskot-size-slider').addEventListener('input', function() {
-                            document.getElementById('maskot-size-value').textContent = `${this.value}px`;
-                            app.state.maskotSettings.size = parseInt(this.value);
-                            app.maskot.applySettings();
-                        });
-                        
-                        document.getElementById('maskot-bottom-slider').addEventListener('input', function() {
-                            document.getElementById('maskot-bottom-value').textContent = `${this.value}px`;
-                            app.state.maskotSettings.bottom = parseInt(this.value);
-                            app.maskot.applySettings();
-                        });
-                        
-                        document.getElementById('maskot-right-slider').addEventListener('input', function() {
-                            document.getElementById('maskot-right-value').textContent = `${this.value}px`;
-                            app.state.maskotSettings.right = parseInt(this.value);
-                            app.maskot.applySettings();
-                        });
-                        
-                        document.getElementById('maskot-radius-slider').addEventListener('input', function() {
-                            document.getElementById('maskot-radius-value').textContent = `${this.value}px`;
-                            app.state.maskotSettings.borderRadius = parseInt(this.value);
-                            app.maskot.applySettings();
-                        });
-                        
-                        // Reset butonu
-                        document.getElementById('maskot-reset-btn').onclick = function() {
-                            app.state.maskotSettings = {
-                                size: 64,
-                                bottom: 16,
-                                right: 16,
-                                borderRadius: 0,
-                                border: 'none',
-                                shadow: '0 4px 12px rgba(0,0,0,0.15)',
-                                bg: 'transparent'
-                            };
-                            app.maskot.applySettings();
-                            app.maskot.saveSettings();
-                            panel.style.display = 'none';
-                            app.ui.showModal('Ayarlar Sıfırlandı', 'Maskot ayarları varsayılana döndürüldü.', '🔄');
-                        };
-                        
-                        // Kapat butonu
-                        document.getElementById('maskot-close-btn').onclick = function() {
-                            panel.style.display = 'none';
-                            app.maskot.saveSettings();
-                        };
-                        
-                        panel.style.display = 'block';
-                    }
-                },
-                
-                closeSettings: function() {
-                    const panel = document.getElementById('maskot-control-panel');
-                    if (panel) {
-                        panel.style.display = 'none';
-                        app.maskot.saveSettings();
-                    }
                 }
             },
 
@@ -3827,14 +3415,6 @@
                         app.reports.renderReports();
                     }
                     
-                    // Maskot ayar düğmesini göster/gizle
-                    const maskotSettingsBtn = document.getElementById('maskot-settings-btn');
-                    if (viewName === 'garden') {
-                        maskotSettingsBtn.style.display = 'flex';
-                    } else {
-                        maskotSettingsBtn.style.display = 'none';
-                    }
-                    
                     // Basit eşleme
                     if (viewName === 'garden') {
                         document.querySelectorAll('.nav-btn')[0]?.classList.add('active');
@@ -4012,25 +3592,6 @@
                     
                     // Mobil dokunmatik için özel ayarlar
                     this.setupMobileTouch();
-                    
-                    // Maskot ayar düğmesi
-                    const maskotSettingsBtn = document.getElementById('maskot-settings-btn');
-                    if (maskotSettingsBtn) {
-                        maskotSettingsBtn.addEventListener('click', function() {
-                            app.maskot.openSettings();
-                        });
-                    }
-                    
-                    // Maskot ayar paneli kapatma (dışarı tıklama)
-                    document.addEventListener('click', function(event) {
-                        const maskotPanel = document.getElementById('maskot-control-panel');
-                        if (maskotPanel && maskotPanel.style.display === 'block') {
-                            if (!maskotPanel.contains(event.target) && event.target.id !== 'maskot-settings-btn') {
-                                maskotPanel.style.display = 'none';
-                                app.maskot.saveSettings();
-                            }
-                        }
-                    });
                 },
                 
                 // Mobil dokunmatik ayarları
@@ -4084,17 +3645,6 @@
         // iOS için orientation change sonrası yeniden boyutlandırma
         window.addEventListener('orientationchange', function() {
             setTimeout(app.setViewportHeight, 100);
-        });
-        
-        // Maskot ayar paneli ESC tuşu ile kapatma
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                const maskotPanel = document.getElementById('maskot-control-panel');
-                if (maskotPanel && maskotPanel.style.display === 'block') {
-                    maskotPanel.style.display = 'none';
-                    app.maskot.saveSettings();
-                }
-            }
         });
     </script>
 </body>
